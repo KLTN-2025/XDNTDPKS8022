@@ -1,0 +1,157 @@
+"use client";
+
+import { HoverCardContent } from "@/components/ui/hover-card";
+import { HoverCard, HoverCardTrigger } from "@radix-ui/react-hover-card";
+import { ChevronDown } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
+import useSWR from "swr";
+
+interface IListHeader {
+  id: number;
+  link: string;
+  title: string;
+  hasDropdown?: boolean;
+}
+
+interface IRoomtype {
+  id: string;
+  name: string;
+}
+
+const ListItems: IListHeader[] = [
+  { id: 1, link: "/", title: "Trang Chủ" },
+  { id: 2, link: "/about", title: "Giới Thiệu" },
+  { id: 3, link: "#", title: "Phòng", hasDropdown: true },
+  { id: 4, link: "/blog", title: "Bài viết " },
+  { id: 5, link: "/imageshotel", title: "Thư Viện ảnh" },
+];
+
+const ListItem = () => {
+  const pathname = usePathname();
+  const { data, isLoading } = useSWR(
+    `${process.env.NEXT_PUBLIC_URL_API}/api/roomtype?page=1&limit=999`
+  );
+
+  const [isMobileDropdownOpen, setIsMobileDropdownOpen] = useState(false);
+
+  const toggleMobileDropdown = () => {
+    setIsMobileDropdownOpen((prev) => !prev);
+  };
+
+  return (
+    <div className="flex items-center md:flex-row flex-col md:space-x-2 space-y-2 md:space-y-0 w-full md:w-auto">
+      {ListItems.map((item) =>
+        item.hasDropdown ? (
+          <div key={item.id} className="relative w-full md:w-auto">
+            {/* Desktop: HoverCard for md and larger */}
+            <HoverCard>
+              <HoverCardTrigger asChild className="hidden md:block">
+                <div
+                  className={`px-6 py-2 text-white text-base font-medium cursor-pointer hover:text-teal-500 transition-colors duration-200 ${
+                    pathname === item.link ? "bg-teal-500 rounded-full" : ""
+                  }`}
+                >
+                  <div className="flex  items-center gap-1">
+                    <p>{item.title}</p>
+                    <ChevronDown className="w-4 h-4" />
+                  </div>
+                </div>
+              </HoverCardTrigger>
+              <HoverCardContent className="w-48 mt-2 p-2 bg-white shadow-lg rounded-lg border hidden md:block">
+                {isLoading && (
+                  <p className="text-gray-500 text-sm">Loading...</p>
+                )}
+                {data && data?.roomType?.length > 0 ? (
+                  <ul className="space-y-1">
+                    {data?.roomType?.map((room: IRoomtype) => (
+                      <li key={room.id}>
+                        <Link
+                          href={`/rooms/${room.id}`}
+                          className="block text-gray-700 hover:bg-gray-50 p-2 rounded hover:border-l-4 hover:border-amber-400 transition-all duration-150"
+                        >
+                          {room.name}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  !isLoading && (
+                    <p className="text-gray-500 text-sm">No rooms available.</p>
+                  )
+                )}
+              </HoverCardContent>
+            </HoverCard>
+
+            {/* Mobile: Clickable dropdown for sm and smaller */}
+            <div className="md:hidden w-full">
+              <button
+                onClick={toggleMobileDropdown}
+                className={`w-full px-6 py-3 text-base font-medium rounded-lg transition-colors duration-200 flex items-center justify-center ${
+                  pathname === item.link
+                    ? "bg-teal-500 text-white"
+                    : "text-white hover:text-teal-500 hover:bg-white/10"
+                }`}
+              >
+                <span>{item.title}</span>
+                <ChevronDown
+                  className={`w-4 h-4 transition-transform duration-200  ${
+                    isMobileDropdownOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              {isMobileDropdownOpen && (
+                <div className="mt-2 w-full bg-white shadow-lg rounded-lg border overflow-hidden">
+                  {isLoading && (
+                    <div className="p-4">
+                      <p className="text-gray-500 text-sm">Loading...</p>
+                    </div>
+                  )}
+                  {data && data?.roomType?.length > 0 ? (
+                    <ul className="py-2">
+                      {data?.roomType.map((room: IRoomtype) => (
+                        <li key={room.id}>
+                          <Link
+                            href={`/rooms/${room.id}`}
+                            className="block text-gray-700 hover:bg-gray-50 px-4 py-3 hover:border-l-4  transition-all duration-150"
+                            onClick={() => setIsMobileDropdownOpen(false)}
+                          >
+                            {room.name}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    !isLoading && (
+                      <div className="p-4">
+                        <p className="text-gray-500 text-sm">
+                          No rooms available.
+                        </p>
+                      </div>
+                    )
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <Link
+            href={item.link}
+            key={item.id}
+            className={`w-full md:w-auto px-6 py-3 md:py-2 text-base font-medium rounded-lg md:rounded-full transition-colors duration-200 text-center md:text-left ${
+              pathname === item.link
+                ? "bg-teal-400/60 text-white"
+                : "text-white hover:text-teal-300 hover:bg-white/10 md:hover:bg-transparent"
+            }`}
+          >
+            {item.title}
+          </Link>
+        )
+      )}
+    </div>
+  );
+};
+
+export default ListItem;
