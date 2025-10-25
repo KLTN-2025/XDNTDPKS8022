@@ -46,6 +46,7 @@ model RoomType {
   name          String            @unique
   description   String?           @db.Text
   basePrice     Decimal           @db.Decimal(10, 2)
+  originalPrice  Decimal           @db.Decimal(10, 2) @default(0)
   maxOccupancy  Int               @db.SmallInt
   photoUrls     String
   createdAt     DateTime          @default(now())
@@ -194,6 +195,7 @@ model SeasonalRate {
   multiplier Decimal  @db.Decimal(5, 2)
   seasonName String?
   createdAt  DateTime @default(now())
+  isActive   Boolean  @default(false)
   updatedAt  DateTime @updatedAt
   roomTypeId String
   roomType   RoomType @relation(fields: [roomTypeId], references: [id])

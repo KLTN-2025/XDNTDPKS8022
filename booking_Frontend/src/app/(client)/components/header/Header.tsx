@@ -13,17 +13,17 @@ const Header = () => {
     <>
       {/* Navigation */}
       <header className="bg-gradient-to-br from-blue-500/10 to-teal-800/90  border-b border-white/10 hidden md:block">
-        <div className="container mx-auto px-4 py-4">
-          <nav className="flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className=" mx-auto px-4 py-3 ">
+          <nav className="flex items-center gap-4">
             {/* Logo */}
-            <div className="text-white text-xl font-bold">
+            <div className="text-white text-xl font-bold  2xl:mr-20">
               <Link href={"/"}>
                 <Image
                   alt="Logo"
                   src={"/image/logo2.png"}
                   width={100}
                   height={100}
-                  className="w-32 md:w-40 object-contain"
+                  className="w-32 md:w-40  bg-cover"
                 />
               </Link>
             </div>

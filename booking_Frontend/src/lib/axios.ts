@@ -18,15 +18,14 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// Interceptor response
 axiosInstance.interceptors.response.use(
-  (response) => {
-    console.log("[Response]", response);
-    return response;
-  },
+  (response) => response,
   (error) => {
-    console.error("[Response Error]", error);
-    return error.response;
+    const message =
+      error.response?.data?.message ||
+      error.message ||
+      "Có lỗi xảy ra từ server!";
+    return Promise.reject({ ...error, message });
   }
 );
 

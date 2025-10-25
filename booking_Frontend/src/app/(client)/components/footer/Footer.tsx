@@ -184,21 +184,6 @@ const Footer: React.FC = () => {
             Nhận thông tin mới nhất về ưu đãi, sự kiện và dịch vụ của chúng tôi
             qua email.
           </p>
-          <div className="flex">
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Nhập email của bạn"
-              className="flex-1 px-4 py-2 rounded-l-lg bg-gray-800 text-gray-300 border-none focus:outline-none focus:ring-2 focus:ring-yellow-500"
-            />
-            <button
-              onClick={handleSubmit}
-              className="px-4 py-2 bg-yellow-500 text-white rounded-r-lg hover:bg-yellow-600 transition-colors"
-            >
-              Đăng Ký
-            </button>
-          </div>
         </div>
       </div>
 

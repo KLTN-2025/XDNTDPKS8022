@@ -10,6 +10,7 @@ import "swiper/css/effect-fade";
 
 import FormBooking from "../../components/FormBooking";
 import DetailRooms from "../../components/DetailRooms";
+import RoomRelative from "../../components/RoomRelative";
 
 export interface RoomData {
   room: {
@@ -50,11 +51,10 @@ export default function Page({
 }: {
   params: Promise<{ id: string; roomId: string }>;
 }) {
-  const { roomId } = use(params);
+  const { roomId, id } = use(params);
 
   const { data, isLoading } = useSWR<RoomData>(
-    `${process.env.NEXT_PUBLIC_URL_API}/api/room/${roomId}`,
-    fetcher
+    `${process.env.NEXT_PUBLIC_URL_API}/api/room/${roomId}`
   );
 
   useEffect(() => {
@@ -117,11 +117,11 @@ export default function Page({
   const { room } = data;
 
   return (
-    <div className="container mx-auto  mt-0.5 ">
-      <div className="bg-white  shadow-2xl overflow-hidden border border-gray-100">
+    <div className=" ">
+      <div className="bg-white  shadow-2xl  border border-gray-100">
         {/* Main Content */}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mx-4 lg:p-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mx-4 x:mx-10 my-4">
           {" "}
           <div className="lg:col-span-2">
             {" "}
@@ -138,6 +138,7 @@ export default function Page({
           </div>
         </div>
       </div>
+      <RoomRelative RoomTypeId={id} currentRoomId={roomId} />
     </div>
   );
 }

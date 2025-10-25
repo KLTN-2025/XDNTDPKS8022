@@ -1,5 +1,5 @@
 import Express from "express";
-import { chatController } from "../controller/openAl.Controller.js";
+import { chatController } from "../controller/openai.Controller.js";
 
 const routerOpenAi = Express.Router();
 

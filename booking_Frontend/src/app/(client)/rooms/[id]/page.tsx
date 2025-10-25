@@ -14,7 +14,6 @@ export default function Page({ params }: RoomPageProps) {
     `${URL_API}/api/room/roomtype/${id}`,
     fetcher
   );
-  console.log("Data", data);
 
   if (!data || isLoading) {
     return <div>Loading...</div>;

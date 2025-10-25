@@ -34,7 +34,7 @@ interface IButton {
 const ButtonSelectType = ({ setTypeRoom, typeRoom }: IButton) => {
   return (
     <div className="flex gap-4 items-center justify-center py-6 px-3  ">
-      <div className=" md:flex gap-3 bg-white/80 backdrop-blur-sm rounded-2xl p-2 shadow-lg border border-gray-200/50">
+      <div className=" flex  md:gap-3 bg-white/80 backdrop-blur-sm rounded-2xl  shadow-lg border border-gray-200/50">
         {ItemButton.map((item) => {
           const IconComponent = item.icon;
           const isSelected = item.value === typeRoom;
@@ -45,7 +45,7 @@ const ButtonSelectType = ({ setTypeRoom, typeRoom }: IButton) => {
               variant="ghost"
               className={`
                 relative overflow-hidden group transition-all duration-300 ease-out
-                px-6 py-3 rounded-xl font-medium text-sm
+                px-4 md:px-6 py-3 md:py-6 rounded-xl font-medium text-sm
                 ${
                   isSelected
                     ? `bg-gradient-to-r ${item.gradient} text-white shadow-lg scale-105 transform`
@@ -64,9 +64,10 @@ const ButtonSelectType = ({ setTypeRoom, typeRoom }: IButton) => {
               />
 
               {/* Content */}
-              <div className="relative flex items-center gap-2 z-10">
-                <IconComponent
-                  className={`
+              <div className="relative flex items-center gap-2 z-10 ">
+                <div className="hidden md:block ">
+                  <IconComponent
+                    className={`
                   w-4 h-4 transition-all duration-300
                   ${
                     isSelected
@@ -74,7 +75,8 @@ const ButtonSelectType = ({ setTypeRoom, typeRoom }: IButton) => {
                       : "text-gray-500 group-hover:text-white"
                   }
                 `}
-                />
+                  />
+                </div>
                 <span
                   className={`
                   transition-all duration-300

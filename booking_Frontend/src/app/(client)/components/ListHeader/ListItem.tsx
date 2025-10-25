@@ -22,9 +22,9 @@ interface IRoomtype {
 
 const ListItems: IListHeader[] = [
   { id: 1, link: "/", title: "Trang Chủ" },
-  { id: 2, link: "/about", title: "Giới Thiệu" },
-  { id: 3, link: "#", title: "Phòng", hasDropdown: true },
-  { id: 4, link: "/blog", title: "Bài viết " },
+  { id: 2, link: "#", title: "Phòng", hasDropdown: true },
+  { id: 3, link: "/blog", title: "Bài viết " },
+  { id: 4, link: "/about", title: "Giới Thiệu" },
   { id: 5, link: "/imageshotel", title: "Thư Viện ảnh" },
 ];
 
@@ -41,10 +41,10 @@ const ListItem = () => {
   };
 
   return (
-    <div className="flex items-center md:flex-row flex-col md:space-x-2 space-y-2 md:space-y-0 w-full md:w-auto">
+    <div className="flex items-center md:flex-row flex-col text-nowrap md:space-x-2 space-y-2 md:space-y-0 w-full md:w-auto">
       {ListItems.map((item) =>
         item.hasDropdown ? (
-          <div key={item.id} className="relative w-full md:w-auto">
+          <div key={item.id} className="relative w-full md:w-auto ">
             {/* Desktop: HoverCard for md and larger */}
             <HoverCard>
               <HoverCardTrigger asChild className="hidden md:block">
@@ -59,7 +59,10 @@ const ListItem = () => {
                   </div>
                 </div>
               </HoverCardTrigger>
-              <HoverCardContent className="w-48 mt-2 p-2 bg-white shadow-lg rounded-lg border hidden md:block">
+              <HoverCardContent
+                align="center"
+                className="w-48 mt-2 p-2 bg-white shadow-lg rounded-lg border hidden md:block "
+              >
                 {isLoading && (
                   <p className="text-gray-500 text-sm">Loading...</p>
                 )}
@@ -69,7 +72,7 @@ const ListItem = () => {
                       <li key={room.id}>
                         <Link
                           href={`/rooms/${room.id}`}
-                          className="block text-gray-700 hover:bg-gray-50 p-2 rounded hover:border-l-4 hover:border-amber-400 transition-all duration-150"
+                          className="block text-gray-700 hover:bg-gray-50 p-2 rounded hover:border-l-4 text-center hover:border-amber-400 transition-all duration-150"
                         >
                           {room.name}
                         </Link>
@@ -103,7 +106,7 @@ const ListItem = () => {
               </button>
 
               {isMobileDropdownOpen && (
-                <div className="mt-2 w-full bg-white shadow-lg rounded-lg border overflow-hidden">
+                <div className="mt-2 w-full bg-white/70 shadow-lg rounded-lg border overflow-hidden">
                   {isLoading && (
                     <div className="p-4">
                       <p className="text-gray-500 text-sm">Loading...</p>
@@ -115,7 +118,7 @@ const ListItem = () => {
                         <li key={room.id}>
                           <Link
                             href={`/rooms/${room.id}`}
-                            className="block text-gray-700 hover:bg-gray-50 px-4 py-3 hover:border-l-4  transition-all duration-150"
+                            className="block text-gray-700 hover:bg-gray-50 px-4 text-center py-3 hover:border-l-4  transition-all duration-150"
                             onClick={() => setIsMobileDropdownOpen(false)}
                           >
                             {room.name}
@@ -142,8 +145,8 @@ const ListItem = () => {
             key={item.id}
             className={`w-full md:w-auto px-6 py-3 md:py-2 text-base font-medium rounded-lg md:rounded-full transition-colors duration-200 text-center md:text-left ${
               pathname === item.link
-                ? "bg-teal-400/60 text-white"
-                : "text-white hover:text-teal-300 hover:bg-white/10 md:hover:bg-transparent"
+                ? "bg-teal-400/60 text-white font-bold"
+                : "text-white hover:text-teal-300 hover:bg-white/10 md:hover:bg-transparent font-medium"
             }`}
           >
             {item.title}

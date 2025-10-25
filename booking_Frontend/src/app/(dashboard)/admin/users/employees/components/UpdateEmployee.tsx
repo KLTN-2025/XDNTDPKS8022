@@ -7,8 +7,8 @@ import Modal from "react-modal";
 import { Employee } from "./TableEmployee";
 import axios from "axios";
 import { URL_API } from "@/lib/fetcher";
-import { mutate } from "swr";
 import toast from "react-hot-toast";
+import Mutate from "@/hook/Mutate";
 interface IUpdateEmployee {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
@@ -74,7 +74,7 @@ const UpdateEmployee = ({ isOpen, setIsOpen, employee }: IUpdateEmployee) => {
       );
       if (res.status === 200) {
         setIsOpen(false);
-        mutate(`${URL_API}/api/auth/employee`);
+        Mutate(`${URL_API}/api/auth/employee`);
         toast.success("Cập nhật nhân viên thành công");
       }
     } catch (error: any) {

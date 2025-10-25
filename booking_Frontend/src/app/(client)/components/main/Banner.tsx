@@ -3,7 +3,6 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import { Navigation, Keyboard, Autoplay } from "swiper/modules";
 import "swiper/css";
-import "swiper/css/navigation";
 import "swiper/css/pagination";
 import { Swiper, SwiperSlide } from "swiper/react";
 
@@ -18,17 +17,17 @@ const Banner = () => {
         disableOnInteraction: false,
       }}
       modules={[Navigation, Keyboard, Autoplay]}
-      className="mySwiper w-full "
+      className="mySwiper w-screen  h-[50%] lg:w-full xl:h-screen"
     >
       <SwiperSlide>
-        <div className="relative w-full h-[700px]  md:h-[800px] ">
+        <div className="relative w-screen  ">
           <video
             src="/video/video2.mp4"
             loop
             autoPlay
             muted
             playsInline
-            className="w-full h-full object-cover z-10"
+            className="w-screen h-full object-cover z-10"
           />
           <div className="absolute inset-0 z-20 bg-opacity-30 flex items-center justify-center">
             <div className="text-center text-white p-4">
@@ -49,14 +48,14 @@ const Banner = () => {
       </SwiperSlide>
 
       <SwiperSlide>
-        <div className="relative w-full h-[700px]  md:h-[800px] ">
+        <div className="relative w-screen  ">
           <video
             src="/video/video1.mp4"
             loop
             autoPlay
             muted
             playsInline
-            className="w-full h-full object-cover z-10" // Thêm z-10 để video ở dưới overlay
+            className="w-screen h-full object-cover z-10" // Thêm z-10 để video ở dưới overlay
           />
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center text-white p-4"></div>
@@ -65,14 +64,14 @@ const Banner = () => {
       </SwiperSlide>
 
       <SwiperSlide>
-        <div className="relative w-full h-[700px]  md:h-[800px] ">
+        <div className="relative w-screen  ">
           <video
             src="/video/video3.mp4"
             loop
             autoPlay
             muted
             playsInline
-            className="w-full h-full object-cover z-10" // Thêm z-10 để video ở dưới overlay
+            className="w-screen h-full object-cover z-10" // Thêm z-10 để video ở dưới overlay
           />{" "}
         </div>
       </SwiperSlide>
