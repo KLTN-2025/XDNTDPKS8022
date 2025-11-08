@@ -16,6 +16,13 @@ export default async function middleware(req: NextRequest) {
       maxAge: -1,
       path: "/",
     });
+    response.cookies.set("refreshtToken", "", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: -1,
+      path: "/",
+    });
 
     return response;
   }

@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import EmployeeTable from "./components/TableEmployee";
 import useSWR from "swr";
 import { fetcher, URL_API } from "@/lib/fetcher";
-import { useDebounce } from "../../../../../../hook/Debounce";
+import { useDebounce } from "../../../../../hook/Debounce";
 import Pagination from "@/app/(dashboard)/components/Pagination/Pagination";
 import LimitSelector from "@/app/(dashboard)/components/Pagination/SelectRecord";
 import ElegantTitle from "@/app/(dashboard)/components/TitleDashboard/ElegantTitle";

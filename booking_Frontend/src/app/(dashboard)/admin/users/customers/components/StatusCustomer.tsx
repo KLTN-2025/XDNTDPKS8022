@@ -4,12 +4,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import Mutate from "@/hook/Mutate";
 import { URL_API } from "@/lib/fetcher";
 import axios from "axios";
 import { MoreHorizontalIcon } from "lucide-react";
 import React from "react";
 import toast from "react-hot-toast";
-import { mutate } from "swr";
 
 interface StatusCustomerProps {
   userId: string;
@@ -29,7 +29,7 @@ const StatusCustomer = ({ userId, status }: StatusCustomerProps) => {
         toast.success(
           `${status === "ACTIVE" ? "Vô hiệu hóa" : "Kích hoạt"} thành công!`
         );
-        mutate(`${URL_API}/api/auth/customer`);
+        Mutate(`${URL_API}/api/auth/customer`);
       }
     } catch (error: any) {
       toast.error("Đã xảy ra lỗi khi cập nhật trạng thái người dùng.");

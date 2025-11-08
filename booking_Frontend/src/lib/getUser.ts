@@ -1,14 +1,13 @@
-import axios from "axios";
-import { URL_API } from "./fetcher";
+import axiosInstance from "./axios";
 
 export async function getUser() {
   try {
-    const res = await axios.get(`${URL_API}/api/auth/user`, {
+    const res = await axiosInstance.get(`/api/auth/user`, {
       withCredentials: true,
     });
 
     return res.data;
-  } catch (error: any) {
+  } catch {
     return (document.location.href = "/");
   }
 }

@@ -25,22 +25,15 @@ interface RoomType {
   id: string;
   name: string;
   description: string;
-  basePrice: number;
   maxOccupancy: number;
   amenities: Amenity[];
   photoUrls?: string;
 }
 interface MockRoomType {
   roomTypes: RoomType[];
-  setOrder: (value: "asc" | "desc") => void;
-  order: "asc" | "desc";
 }
 
-export default function RoomTypesAdminPage({
-  roomTypes,
-  setOrder,
-  order,
-}: MockRoomType) {
+export default function RoomTypesAdminPage({ roomTypes }: MockRoomType) {
   if (!roomTypes || roomTypes.length === 0) {
     return <div className="text-center py-8">No room types available</div>;
   }
@@ -63,20 +56,6 @@ export default function RoomTypesAdminPage({
               <TableHead className="w-[80px]">STT</TableHead>
               <TableHead className="w-[100px]">Hình ảnh</TableHead>
               <TableHead>Tên</TableHead>
-              <TableHead className="flex items-center gap-1">
-                Giá{" "}
-                {order === "asc" ? (
-                  <ArrowUp
-                    onClick={() => setOrder("desc")}
-                    className="hover:cursor-pointer h-5 w-5"
-                  />
-                ) : (
-                  <ArrowDown
-                    onClick={() => setOrder("asc")}
-                    className="hover:cursor-pointer h-5 w-5"
-                  />
-                )}
-              </TableHead>
               <TableHead>Sức chứa tối đa</TableHead>
               <TableHead className="text-right">Hành động</TableHead>
             </TableRow>
@@ -84,7 +63,7 @@ export default function RoomTypesAdminPage({
           <TableBody>
             {roomTypes.map((roomType, index) => (
               <React.Fragment key={roomType.id}>
-                <TableRow>
+                <TableRow className="mx-5">
                   <TableCell>
                     <Button
                       variant="ghost"
@@ -112,9 +91,7 @@ export default function RoomTypesAdminPage({
                     </div>
                   </TableCell>
                   <TableCell>{roomType.name}</TableCell>
-                  <TableCell>
-                    {formatPrice(Number(roomType.basePrice))}
-                  </TableCell>
+
                   <TableCell className="ml-5">
                     {roomType.maxOccupancy} Người
                   </TableCell>

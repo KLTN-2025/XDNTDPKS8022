@@ -1,11 +1,12 @@
 "use client";
 import Modal from "react-modal";
 import React, { useEffect, useState } from "react";
-import useSWR, { mutate } from "swr";
+import useSWR from "swr";
 import { URL_API } from "@/lib/fetcher";
 import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
 import axios from "axios";
+import Mutate from "@/hook/Mutate";
 interface IPermissonEmployee {
   isOpen: boolean;
   setIsOpen: (value: boolean) => void;
@@ -34,7 +35,7 @@ const PermissionEmployee = ({
           withCredentials: true,
         }
       );
-      mutate(`${URL_API}/api/auth/employee`);
+      Mutate(`${URL_API}/api/auth/employee`);
       toast.success("Cập nhật quyền thành công");
       setIsOpen(false);
     } catch (error: any) {

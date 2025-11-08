@@ -2,6 +2,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import Mutate from "@/hook/Mutate";
 import axiosInstance from "@/lib/axios";
 import { URL_API } from "@/lib/fetcher";
 import { Label } from "@radix-ui/react-label";
@@ -9,7 +10,6 @@ import { UserPlus, X } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import Modal from "react-modal";
-import { mutate } from "swr";
 const AddEmployee = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -53,7 +53,7 @@ const AddEmployee = () => {
     try {
       const res = await axiosInstance.post(`/api/auth/employee`, formData);
       if (res.data) {
-        mutate(`${URL_API}/api/auth/employee`);
+        Mutate(`${URL_API}/api/auth/employee`);
         toast.success("Thêm Nhân Viên Thành Công");
         setIsOpen(false);
         setFormData({
@@ -68,7 +68,6 @@ const AddEmployee = () => {
       }
     } catch (error: any) {
       toast.error(error.response.data.message || "lỗi");
-      console.log("lỗi là", error.response.data.message);
     }
   };
   return (

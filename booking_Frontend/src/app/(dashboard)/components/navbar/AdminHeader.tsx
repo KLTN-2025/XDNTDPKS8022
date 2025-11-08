@@ -5,6 +5,7 @@ import {
   ChevronLeft,
   ChevronRightIcon as ChevronRightDouble,
 } from "lucide-react";
+import AdminNotifications from "../AdminNotifications";
 
 const AdminHeader = () => {
   const { isCollapsed, toggleCollapse } = useSidebar();
@@ -28,6 +29,7 @@ const AdminHeader = () => {
           Bảng Điều Khiển
         </Link>
       </div>
+      <AdminNotifications />
       <div className="flex-none">
         <div className="dropdown dropdown-end">
           <div

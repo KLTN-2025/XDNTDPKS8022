@@ -27,9 +27,9 @@ import PermissionEmployee from "./PermissionEmployee";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { URL_API } from "@/lib/fetcher";
-import { mutate } from "swr";
 import EmployeeRoleAction from "./EmployeeRoleAction";
 import SearchForm from "@/app/(dashboard)/components/searchPage/SearchForm";
+import Mutate from "@/hook/Mutate";
 
 interface EmployeeDetails {
   id: string;
@@ -77,7 +77,7 @@ const TableEmployee = ({
         withCredentials: true,
       });
       toast.success("Hủy quyền thành công!");
-      mutate(`${URL_API}/api/auth/employee`);
+      Mutate(`${URL_API}/api/auth/employee`);
       setIsPermissionModalOpen(false);
     } catch (error: any) {
       toast.error(

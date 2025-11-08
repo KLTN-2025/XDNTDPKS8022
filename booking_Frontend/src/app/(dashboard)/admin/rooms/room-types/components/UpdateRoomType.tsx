@@ -12,12 +12,12 @@ import toast from "react-hot-toast";
 import Image from "next/image";
 import axios from "axios";
 import DeleteAmenityToRoomtype from "./DeleteAmenityToRoomtype";
-import Mutate from "../../../../../../../hook/Mutate";
+import Mutate from "@/hook/Mutate";
 interface RoomType {
   id: string;
   name: string;
   description: string;
-  basePrice: number;
+
   maxOccupancy: number;
   photoUrls?: string;
   amenities: {
@@ -30,11 +30,10 @@ interface MockRoomType {
 
 const UpdateRoomType = ({ roomTypes }: MockRoomType) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [image, setImage] = useState<undefined | string>(undefined);
+  const [image, setImage] = useState<null | string>(null);
   const [formData, setFormData] = useState({
     name: roomTypes.name,
     description: roomTypes.description,
-    basePrice: Number(roomTypes.basePrice || 0),
     maxOccupancy: Number(roomTypes.maxOccupancy || 0),
     photoUrls: roomTypes.photoUrls,
   });
@@ -46,13 +45,31 @@ const UpdateRoomType = ({ roomTypes }: MockRoomType) => {
     setFormData((prev) => ({
       ...prev,
       [name]:
-        name === "basePrice" || name === "maxOccupancy" ? Number(value) : value,
+        name === "originalPrice" || name === "maxOccupancy"
+          ? Number(value)
+          : value,
     }));
   };
   useEffect(() => {
     Modal.setAppElement("#root");
   }, []);
+  useEffect(() => {
+    if (roomTypes.photoUrls) {
+      setImage(roomTypes.photoUrls);
+    }
+  }, [roomTypes.photoUrls]);
+
   const roomTypeAmenities = roomTypes.amenities.map((item) => item.amenity.id);
+  const resetForm = () => {
+    setIsOpen(false);
+    setFormData({
+      name: roomTypes.name,
+      description: roomTypes.description,
+      maxOccupancy: Number(roomTypes.maxOccupancy || 0),
+      photoUrls: roomTypes.photoUrls,
+    });
+    setImage(roomTypes.photoUrls || null);
+  };
 
   const handleUpdateRoomType = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,11 +111,7 @@ const UpdateRoomType = ({ roomTypes }: MockRoomType) => {
         >
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold"></h2>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsOpen(false)}
-            >
+            <Button variant="ghost" size="icon" onClick={resetForm}>
               <X className="h-5 w-5" />
             </Button>
           </div>
@@ -125,26 +138,13 @@ const UpdateRoomType = ({ roomTypes }: MockRoomType) => {
                     id="description"
                     name="description"
                     value={formData.description || ""}
-                    rows={6}
+                    rows={8}
                     onChange={handleChange}
                     className="w-full border p-2"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="basePrice">
-                      Giá cơ bản <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      name="basePrice"
-                      type="number"
-                      min="0"
-                      value={Number(formData.basePrice) || ""}
-                      onChange={handleChange}
-                    />
-                  </div>
-
                   <div className="space-y-2">
                     <Label htmlFor="maxOccupancy">
                       Số người tối đa <span className="text-red-500">*</span>
@@ -166,12 +166,22 @@ const UpdateRoomType = ({ roomTypes }: MockRoomType) => {
                 {image ? (
                   <div className="flex items-center justify-center ">
                     <Image
-                      width={128}
-                      height={128}
-                      src={image}
+                      width={400}
+                      height={400}
+                      src={image || "/placeholder.svg"}
                       alt="Uploaded"
-                      className="w-64  object-contain rounded-lg shadow-md"
+                      className="w-128 h-auto  object-cover rounded-lg shadow-md"
                     />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-0 right-3 cursor-pointer bg-white text-red-500 hover:text-red-600 shadow-md"
+                      onClick={() => {
+                        setImage(null);
+                      }}
+                    >
+                      <X className="h-5 w-5" />
+                    </Button>
                   </div>
                 ) : (
                   <div className="flex items-center justify-center border-2 border-dashed rounded-lg p-4 h-[200px] ">
@@ -181,7 +191,11 @@ const UpdateRoomType = ({ roomTypes }: MockRoomType) => {
                       endpoint="imageUploader"
                       onClientUploadComplete={(res) => {
                         if (res) {
-                          setImage(res[0].url);
+                          setImage(res[0].ufsUrl);
+                          setFormData((prev) => ({
+                            ...prev,
+                            photoUrls: res[0].ufsUrl,
+                          }));
                         }
                       }}
                       onUploadError={(error) => {
@@ -193,7 +207,9 @@ const UpdateRoomType = ({ roomTypes }: MockRoomType) => {
                       content={{
                         button({ isUploading }) {
                           return isUploading ? (
-                            <div className="text-black">Đang tải lên...</div>
+                            <div className="text-black text-xs">
+                              Đang tải lên...
+                            </div>
                           ) : (
                             <>
                               <ImageDownIcon className="text-black w-8 h-8" />
@@ -243,10 +259,7 @@ const UpdateRoomType = ({ roomTypes }: MockRoomType) => {
                 type="button"
                 variant="outline"
                 className="text-white bg-red-500 hover:bg-red-600 cursor-pointer"
-                onClick={() => {
-                  setIsOpen(false);
-                  setImage("");
-                }}
+                onClick={resetForm}
               >
                 Hủy
               </Button>

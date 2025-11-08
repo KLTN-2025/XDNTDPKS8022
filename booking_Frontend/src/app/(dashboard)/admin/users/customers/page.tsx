@@ -5,7 +5,7 @@ import useSWR from "swr";
 import { URL_API } from "@/lib/fetcher";
 import Pagination from "@/app/(dashboard)/components/Pagination/Pagination";
 import LimitSelector from "@/app/(dashboard)/components/Pagination/SelectRecord";
-import { useDebounce } from "../../../../../../hook/Debounce";
+import { useDebounce } from "../../../../../hook/Debounce";
 import ElegantTitle from "@/app/(dashboard)/components/TitleDashboard/ElegantTitle";
 
 const Page = () => {

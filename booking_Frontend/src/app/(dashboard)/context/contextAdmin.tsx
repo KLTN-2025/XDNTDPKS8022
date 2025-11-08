@@ -1,5 +1,7 @@
 "use client";
 
+import { useUserStore } from "@/hook/useUserStore";
+import { refreshAccessToken } from "@/lib/axios";
 import { jwtDecode } from "jwt-decode";
 import { useRouter } from "next/navigation";
 
@@ -21,6 +23,7 @@ interface SidebarContextType {
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 
 export function SidebarProvider({ children }: { children: ReactNode }) {
+  const { initUser } = useUserStore();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [countCustomer, setCountCustomer] = useState(0);
 
@@ -39,24 +42,36 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return; // Page public sẽ không làm gì
+    let timer: NodeJS.Timeout;
 
-    const remainingTime = getTokenRemainingTime(token);
+    const handleToken = async () => {
+      let token = localStorage.getItem("token");
+      if (!token) return;
 
-    if (remainingTime <= 0) {
-      localStorage.removeItem("token");
-      router.push("/"); // hoặc "/" tuỳ bạn chọn 1
-      return;
-    }
+      let remainingTime = getTokenRemainingTime(token);
 
-    const timer = setTimeout(() => {
-      localStorage.removeItem("token");
-      router.push("/");
-    }, remainingTime);
+      if (remainingTime <= 0) {
+        try {
+          const newToken = await refreshAccessToken();
+          token = newToken;
+          initUser(); // cập nhật store sau khi refresh
+          remainingTime = getTokenRemainingTime(token);
+        } catch (err) {
+          console.error("Refresh token thất bại:", err);
+          localStorage.removeItem("token");
+          router.push("/login"); // redirect về login nếu refresh thất bại
+          return;
+        }
+      }
+
+      // set timer cho lần refresh tiếp theo
+      timer = setTimeout(handleToken, remainingTime - 1000); // refresh 1s trước khi hết hạn
+    };
+
+    handleToken();
 
     return () => clearTimeout(timer);
-  }, [router]);
+  }, [router, initUser]);
 
   return (
     <SidebarContext.Provider

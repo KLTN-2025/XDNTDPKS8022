@@ -1,10 +1,10 @@
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import Mutate from "@/hook/Mutate";
 import axiosInstance from "@/lib/axios";
 import { URL_API } from "@/lib/fetcher";
 import axios from "axios";
 import React from "react";
 import toast from "react-hot-toast";
-import { mutate } from "swr";
 
 interface IDisabledUser {
   employee: {
@@ -25,7 +25,7 @@ const DisabledUser = ({ employee }: IDisabledUser) => {
           withCredentials: true,
         }
       );
-      mutate(`${URL_API}/api/auth/employee`);
+      Mutate(`${URL_API}/api/auth/employee`);
       toast.success(
         `${employee.status === "ACTIVE" ? "đã vô hiệu hóa " : "Kích hoạt"}`
       );

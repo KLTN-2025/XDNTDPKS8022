@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { use, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -18,6 +18,7 @@ const AdminSidebar = () => {
   const pathname = usePathname();
   const { isCollapsed, toggleCollapse, countCustomer } = useSidebar();
   const { user } = useAuth();
+
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState<number[]>([]);
 

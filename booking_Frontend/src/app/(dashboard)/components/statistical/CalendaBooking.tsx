@@ -40,6 +40,8 @@ const CalendarBooking = () => {
     }));
   }, [data]);
 
+  console.log(events);
+
   const [date, setDate] = useState(new Date());
 
   const CustomEvent = ({ event }: any) => {
