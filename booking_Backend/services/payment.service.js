@@ -17,7 +17,7 @@ export async function payMentBookingService({
   amount,
   paymentMethod,
   bookingId,
-  status,
+  status = "PENDING",
 }) {
   if (amount <= 0) {
     throw new NotFoundError("Total amount must be greater than 0");

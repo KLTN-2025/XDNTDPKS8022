@@ -1,4 +1,4 @@
-import { ChatOpenAI } from "@langchain/openai";
+import { GoogleGenAI } from "@google/genai";
 import axios from "axios";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { RunnableSequence } from "@langchain/core/runnables";
@@ -12,6 +12,7 @@ import WeatherHeader from "../lib/Weather.js";
 import { GeminiLLM } from "../lib/ApiAl.js";
 import { formatPrice } from "../lib/format.js";
 import { detectIntent } from "../lib/DetectIntent.js";
+import { UpstashRedisChatMessageHistory } from "@langchain/community/stores/message/upstash_redis";
 
 const llm = new GeminiLLM({
   apiKey: process.env.OPENAI_API_KEY,
@@ -34,7 +35,6 @@ const hotelInfo = {
   },
 };
 
-let conversation = [];
 let lastIntent = null; // Lưu intent của tin nhắn trước
 let lastContext = {}; // Lưu dữ liệu API đã gọi
 
@@ -82,7 +82,18 @@ function isContinuationQuestion(message, lastIntent) {
 }
 
 // ===== HÀM CHÍNH: XỬ LÝ TIN NHẮN =====
-export async function OpenAIService(message) {
+export async function OpenAIService(message, sessionId) {
+  const messageHistory = new UpstashRedisChatMessageHistory({
+    sessionId,
+    config: {
+      url: process.env.UPSTASH_REDIS_REST_URL, // REST URL, không phải rediss://
+      token: process.env.UPSTASH_REDIS_REST_TOKEN, // REST Token
+    },
+    sessionTTL: 600, // 10 phút
+  });
+  // 1️⃣ Retrieve existing conversation history
+  // const previousMessages = await messageHistory.getMessages();
+
   try {
     // 1️⃣ PHÂN TÍCH Ý ĐỊNH CỦA USER
     let intent = detectIntent(message);
@@ -152,11 +163,7 @@ export async function OpenAIService(message) {
       }
     }
 
-    // 4️⃣ KHỞI TẠO SYSTEM MESSAGE (CHỈ LẦN ĐẦU)
-    if (conversation.length === 0) {
-      conversation.push({
-        role: "system",
-        content: `
+    const systemPrompt = `
 === HƯỚNG DẪN TRẢ LỜI ===
 Bạn là lễ tân khách sạn chuyên nghiệp.
 Khi trả lời khách, hãy tuân theo các quy tắc sau:
@@ -200,9 +207,7 @@ Khi trả lời khách, hãy tuân theo các quy tắc sau:
 - Tiện ích: ${hotelInfo.amenities.join(", ")}
 - Chính sách hủy: ${hotelInfo.policies.cancellation}
 - Đặt cọc: ${hotelInfo.policies.deposit}
-`,
-      });
-    }
+`;
 
     // 5️⃣ TẠO PROMPT ĐỘNG DỰA TRÊN DỮ LIỆU CÓ
     let contextData = `Hôm nay là ${new Date().toLocaleDateString("vi-VN")}.`;
@@ -284,7 +289,7 @@ ${message}`;
 
     // 6️⃣ GỌI AI ĐỂ TẠO CÂU TRẢ LỜI
     const prompt = ChatPromptTemplate.fromMessages([
-      ["assistant", conversation[0].content],
+      ["assistant", systemPrompt],
       ["user", "{input}"],
     ]);
 
@@ -299,15 +304,41 @@ ${message}`;
 
     // const reply = response?.content ?? "Xin lỗi, tôi chưa thể trả lời.";
 
-    conversation.push({ role: "user", content: message });
-    conversation.push({ role: "assistant", content: reply });
+    await messageHistory.addUserMessage(message);
+    await messageHistory.addAIMessage(reply);
 
     console.log("✅ Response generated successfully");
-    return reply;
+    return { reply, history: await messageHistory.getMessages() };
   } catch (error) {
     console.error("❌ OpenAI API Error:", error);
     return "Xin lỗi, hệ thống đang gặp sự cố. Vui lòng liên hệ fanpage để được hỗ trợ.";
   }
+}
+
+//get chatbot
+export async function GetChatHistoryService(sessionId) {
+  if (!sessionId) {
+    return { sessionId: null, history: [] };
+  }
+
+  // Kết nối Upstash Redis
+  const messageHistory = new UpstashRedisChatMessageHistory({
+    sessionId,
+    config: {
+      url: process.env.UPSTASH_REDIS_REST_URL,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN,
+    },
+    sessionTTL: 600, // 10 phút
+  });
+
+  // ✅ Lấy danh sách tin nhắn trong session
+  const history = await messageHistory.getMessages();
+
+  // Trả kết quả
+  return {
+    sessionId,
+    history,
+  };
 }
 
 function extractKeyword(topic) {
@@ -326,18 +357,13 @@ function extractKeyword(topic) {
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase();
 
-  // 3. Xóa ký tự đặc biệt và khoảng trắng, chỉ giữ chữ + số
-  keyword = keyword.replace(/[^a-z0-9]/g, "");
+  keyword = encodeURIComponent(keyword);
 
   return keyword;
 }
 
 //ai about generate-post
 export async function generatePostService(topic) {
-  const llm = new GeminiLLM({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
-
   const keyword = extractKeyword(topic);
 
   const url = `https://api.unsplash.com/search/photos?query=${keyword}&client_id=SbfhmV7iVU5kw8YQRh0p7cwiMdKmWvgSuPj-l_j5bvk`;
@@ -380,9 +406,7 @@ LƯU Ý:
 - Chỉ trả về JSON hợp lệ, không markdown, không text ngoài
 - Viết bằng Tiếng Việt tự nhiên, cuốn hút
 `;
-
   const result = await llm._call(prompt);
-
   // ✅ Trích text ra từ object trả về
   const text = result?.content?.parts?.[0]?.text ?? "Không có phản hồi.";
   const cleanText = text

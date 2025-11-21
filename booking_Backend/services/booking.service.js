@@ -6,15 +6,19 @@ import {
   logCheckOut,
 } from "../lib/auditLog.js";
 import { prisma } from "../lib/client.js";
+import { sendBookingMail } from "../lib/mailer.js";
+import { pusher } from "../lib/Pusher.js";
 import {
   BookingRepo,
   CancelledBookingRepo,
-  checkStatusBooking,
   confirmStatusRepo,
+  FindRoom,
   getAllBookingRepo,
   getBookingForUserRepo,
+  overlappingBooking,
   removeBookingUserRepo,
 } from "../repositories/booking.repo.js";
+import { findGuestUnique } from "../repositories/user.repo.js";
 
 export async function bookingService({
   customerId,
@@ -24,10 +28,25 @@ export async function bookingService({
   specialRequests,
   bookingSource,
   totalAmount,
-  discountId,
+  discountId = "",
   pricePerNight,
   roomId,
+  guestId,
 }) {
+  if (guestId) {
+    const checkGuest = await findGuestUnique(guestId);
+    if (!checkGuest) {
+      throw new NotFoundError("Khách hàng (guest) không được tìm thấy");
+    }
+  }
+
+  const overlapBooking = await overlappingBooking(
+    checkInDate,
+    checkOutDate,
+    customerId,
+    guestId
+  );
+
   if (checkInDate && checkOutDate) {
     const checkIn = new Date(checkInDate);
     const checkOut = new Date(checkOutDate);
@@ -47,10 +66,10 @@ export async function bookingService({
   if (!roomId) {
     throw new NotFoundError("Room ID is required");
   }
+  const room = await FindRoom(roomId);
 
-  const checkBooking = await checkStatusBooking(roomId);
-  if (checkBooking.status !== "AVAILABLE") {
-    throw new NotFoundError(`Phòng đã được ${checkBooking.status}`);
+  if (overlapBooking) {
+    throw new NotFoundError(`Bạn đã có đặt phòng trước đó `);
   }
 
   const booking = await BookingRepo({
@@ -64,9 +83,26 @@ export async function bookingService({
     discountId,
     pricePerNight,
     roomId,
+    guestId,
   });
 
+  const name = booking.customer.user.firstName + booking.customer.user.lastName;
+  const to = booking.customer.user.email;
+  const roomName = room.roomNumber;
+  await pusher.trigger("admin-channel", "new-booking", {
+    customer:
+      booking.customer.user.firstName + " " + booking.customer.user.lastName,
+    room: roomName,
+  });
+  // await sendBookingMail({
+  //   to,
+  //   name,
+  //   roomName,
+  //   checkInDate,
+  //   checkOutDate,
+  // });
   await AuditLogCustomerBooking(booking.customer.user, booking);
+
   return booking;
 }
 
@@ -99,6 +135,11 @@ export async function bookingToEmpoyeeService({
   roomId,
   totalAmount,
 }) {
+  const overlapBooking = await overlappingBooking(
+    checkInDate,
+    checkOutDate,
+    customerId
+  );
   if (checkInDate && checkOutDate) {
     const checkIn = new Date(checkInDate);
     const checkOut = new Date(checkOutDate);
@@ -116,9 +157,9 @@ export async function bookingToEmpoyeeService({
   if (!roomId) {
     throw new NotFoundError("Room ID is required");
   }
+
   let discount = null;
 
-  // nếu có mã giảm giá
   if (discountCode) {
     discount = await prisma.discount.findFirst({
       where: {
@@ -135,11 +176,12 @@ export async function bookingToEmpoyeeService({
   if (totalAmount <= 0) {
     throw new NotFoundError("Tổng Tiền Phải Lớn Hơn không");
   }
-  const checkBooking = await checkStatusBooking(roomId);
-  if (checkBooking.status !== "AVAILABLE") {
-    throw new NotFoundError(`Phòng đã được ${checkBooking.status}`);
-  }
 
+  if (overlapBooking) {
+    throw new Error(
+      `Bạn đã có đặt phòng . Vui lòng chọn khoảng thời gian khác.`
+    );
+  }
   const booking = await BookingRepo({
     customerId,
     checkInDate,

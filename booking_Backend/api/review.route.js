@@ -14,7 +14,7 @@ const routerReview = express.Router();
 routerReview.post("/", authCustomer, CreateReview);
 routerReview.get("/", authCustomer, GetReviewsByBookingId);
 routerReview.get("/status", authCustomer, PointToReviewed);
-routerReview.get("/all", authEmployee, GetAllReviews);
+routerReview.get("/all", GetAllReviews);
 routerReview.delete("/:id", authEmployee, DeleteReview);
 
 export default routerReview;

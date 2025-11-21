@@ -41,19 +41,26 @@ model Customer {
   @@map("customers")
 }
 
+model Guest {
+  id        String   @id @default(uuid())
+  fullName  String
+  idNumber  String?  
+  phone     String?
+  email     String?
+  booking  Booking[]
+}
+
 model RoomType {
   id            String            @id @default(uuid())
   name          String            @unique
   description   String?           @db.Text
-  basePrice     Decimal           @db.Decimal(10, 2)
-  originalPrice  Decimal           @db.Decimal(10, 2) @default(0)
   maxOccupancy  Int               @db.SmallInt
   photoUrls     String
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
   amenities     RoomTypeAmenity[]
   rooms         Room[]
-  seasonalRates SeasonalRate[]
+
 
   @@index([name])
   @@map("room_types")
@@ -90,6 +97,8 @@ model Room {
   floor              Int                 @db.SmallInt
   status             RoomStatus          @default(AVAILABLE)
   notes              String?             @db.Text
+  currentPrice Decimal @db.Decimal(10, 2) @default(0)
+  originalPrice  Decimal           @db.Decimal(10, 2) @default(0)
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
   roomTypeId         String
@@ -97,7 +106,7 @@ model Room {
   maintenanceRecords MaintenanceRecord[]
   images             RoomImage[]
   roomType           RoomType            @relation(fields: [roomTypeId], references: [id])
-
+  seasonalRates SeasonalRate[]
   @@index([roomNumber, status])
   @@index([roomTypeId], map: "rooms_roomTypeId_fkey")
   @@map("rooms")
@@ -126,9 +135,11 @@ model Booking {
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   customerId      String
+  guestId       String?      
   discountId      String?
   bookingItems    BookingItem[]
   customer        Customer      @relation(fields: [customerId], references: [id])
+  guest            Guest?        @relation(fields: [guestId],references: [id])
   discount        Discount?     @relation(fields: [discountId], references: [id])
   payments        Payment[]
   reviews         Review[]
@@ -197,10 +208,10 @@ model SeasonalRate {
   createdAt  DateTime @default(now())
   isActive   Boolean  @default(false)
   updatedAt  DateTime @updatedAt
-  roomTypeId String
-  roomType   RoomType @relation(fields: [roomTypeId], references: [id])
+  roomId String
+  room   Room @relation(fields: [roomId], references: [id])
 
-  @@index([roomTypeId, startDate, endDate])
+  @@index([roomId, startDate, endDate])
   @@map("seasonal_rates")
 }
 
@@ -240,7 +251,7 @@ model BlogPost {
   slug        String    @unique
   summary     String?   @db.Text
   content     String    @db.Text
-  coverImage  String?
+  coverImage String? @db.Text
   published   Boolean   @default(false)
   publishedAt DateTime?
   createdAt   DateTime  @default(now())

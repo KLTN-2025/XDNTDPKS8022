@@ -1,11 +1,10 @@
-import { Prisma } from "@prisma/client";
 import { prisma } from "../lib/client.js";
 
 export async function payMentBookingRepo(data) {
   return await prisma.payment.create({
     data: {
       paymentDate: new Date(),
-      amount: new Prisma.Decimal(data.amount),
+      amount: data.amount,
       paymentMethod: data.paymentMethod,
       status: data.status,
       bookingId: data.bookingId,
@@ -15,7 +14,7 @@ export async function payMentBookingRepo(data) {
 }
 
 export async function webhookpaymentRepo({ orderCode }) {
-  return await prisma.payment.update({
+  return await prisma.payment.updateMany({
     where: {
       transactionId: orderCode,
     },

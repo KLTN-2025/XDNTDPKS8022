@@ -75,6 +75,14 @@ export async function findIDNumber(idNumber) {
   });
 }
 
+export async function findIDNumberGuest(idNumber) {
+  return await prisma.guest.findFirst({
+    where: {
+      idNumber,
+    },
+  });
+}
+
 export async function getAllCustomerRepo(search, skip, take) {
   return await prisma.user.findMany({
     where: {
@@ -209,6 +217,26 @@ export async function disableUserRepo(userId) {
     },
     data: {
       status: newStatus,
+    },
+  });
+}
+export async function findGuestUnique(id) {
+  if (!id) throw new Error("Guest ID không được null hoặc undefined");
+
+  return await prisma.guest.findUnique({
+    where: {
+      id,
+    },
+  });
+}
+export async function createGuestRepo(data) {
+  const { fullName, email, phone, idNumber } = data;
+  return await prisma.guest.create({
+    data: {
+      fullName,
+      email,
+      phone,
+      idNumber,
     },
   });
 }

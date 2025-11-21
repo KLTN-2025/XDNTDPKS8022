@@ -13,11 +13,13 @@ import UpdateRoom from "./UpdateRoom";
 import DeleteRoom from "./DeleteRoom";
 import CheckDateInOut from "./CheckDateInOut";
 import CreateMaintenanceForm from "../../maintenance/components/CreateMaintenanceForm";
+import { formatPrice } from "@/lib/formatPrice";
 
 interface Room {
   id: string;
   roomNumber: string;
   floor: number;
+  originalPrice: number;
   status: "AVAILABLE" | "OCCUPIED" | "MAINTENANCE";
   images: { id: string; imageUrl: string }[];
   notes: string;
@@ -54,6 +56,7 @@ const TableRoom = ({ rooms, data }: TableRoomProps) => {
             <TableHead>Hình Ảnh</TableHead>
             <TableHead>Số phòng</TableHead>
             <TableHead>Tầng</TableHead>
+            <TableHead>Giá phòng</TableHead>
             <TableHead>Trạng thái</TableHead>
             <TableHead>Ngày Nhận && Ngày Trả</TableHead>
             <TableHead>Loại phòng</TableHead>
@@ -78,6 +81,7 @@ const TableRoom = ({ rooms, data }: TableRoomProps) => {
                 </TableCell>
                 <TableCell>P {room.roomNumber}</TableCell>
                 <TableCell> Tầng {room.floor}</TableCell>
+                <TableCell> {formatPrice(room.originalPrice)}</TableCell>
                 <TableCell>
                   <span
                     className={`px-2 py-1 rounded-full text-sm ${

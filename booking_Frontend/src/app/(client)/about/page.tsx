@@ -3,12 +3,15 @@ import React from "react";
 
 const AboutPage = () => {
   return (
-    <section className=" my-5 px-4 md:px-8 lg:px-16 pt-2 bg-gray-50">
+    <section className="  py-7 lg:py-20 bg-gray-50 px-4 md:px-0">
       {/* Heading */}
       <h1 className="text-center text-sm md:text-2xl font-bold text-yellow-600 mb-6 uppercase tracking-widest">
         Về chúng tôi
       </h1>
-
+      <p className="text-lg md:text-xl font-semibold text-yellow-600 text-left lg:text-center">
+        HÃY ĐẾN BEAN HOTEL ĐỂ TRẢI NGHIỆM SỰ KHÁC BIỆT!
+      </p>
+      <br />
       {/* Intro Paragraph */}
       <p className="text-center text-sm md:text-base text-gray-700 max-w-2xl mx-auto mb-10 tracking-tight">
         Là khách sạn 5 sao đẳng cấp quốc tế, tọa lạc tại giao điểm của bốn quận{" "}
@@ -18,18 +21,6 @@ const AboutPage = () => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-        {/* Image */}
-        <div className="relative w-full h-64 md:h-96 lg:h-[500px] rounded-xl overflow-hidden shadow-lg">
-          <Image
-            src="/image/alper-gio-thieu.webp"
-            alt="Bean Hotel"
-            fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 500px"
-            className="object-cover object-center"
-            priority
-          />
-        </div>
-
         {/* Text Content */}
         <div className="space-y-6 text-gray-700 text-sm md:text-base leading-relaxed">
           <p>
@@ -55,9 +46,29 @@ const AboutPage = () => {
             và sự thân thiện như chính ngôi nhà của bạn.
           </p>
           {/* Call to Action */}
-          <p className="text-lg md:text-xl font-semibold text-yellow-600 text-center lg:text-left">
-            HÃY ĐẾN BEAN HOTEL ĐỂ TRẢI NGHIỆM SỰ KHÁC BIỆT!
-          </p>
+        </div>
+        <div>
+          {/* images cycle  rounder  */}
+          <div className="relative flex justify-center px-4 lg:px-0">
+            {/* Outer border circle */}
+            <div className="border-4 border-red-500 rounded-full lg:w-150 lg:h-150 w-80 h-80 flex items-center justify-center relative max-w-full">
+              {/* Main circular image - stays in center */}
+              <div className="relative lg:w-125 lg:h-125 w-64 h-64 rounded-full overflow-hidden">
+                <img
+                  src={"/image/alper-gio-thieu.webp"}
+                  alt="Company team"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
+              {/* Rotating dots container - */}
+              <div className="absolute inset-0 animate-orbit overflow-hidden">
+                <div className="absolute lg:top-4 lg:left-6 lg:w-32 lg:h-32 w-12 h-12 top-2 left-8 bg-red-500 rounded-full opacity-50"></div>
+                <div className="absolute lg:top-10 lg:right-24 lg:w-10 lg:h-10 w-6 h-6 top-6 right-11 bg-red-500 rounded-full"></div>
+                <div className="absolute lg:bottom-5 lg:right-25 lg:w-13 lg:h-13 h-8 w-8 bottom-2 right-13 bg-red-500 rounded-full"></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>

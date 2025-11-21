@@ -16,7 +16,7 @@ export default async function middleware(req: NextRequest) {
       maxAge: -1,
       path: "/",
     });
-    response.cookies.set("refreshtToken", "", {
+    response.cookies.set("refreshToken", "", {
       httpOnly: true,
       secure: true,
       sameSite: "none",

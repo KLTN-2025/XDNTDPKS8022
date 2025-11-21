@@ -1,15 +1,16 @@
 "use client";
 import React from "react";
 
-import BeanHotel from "./components/header/BeanHotel";
+import BeanHotel from "./components/main/BeanHotel";
 import Banner from "./components/main/Banner";
-import RoomShow from "./components/main/RoomShow";
 import HotelShow from "./components/main/HotelShow";
 import ShearchRoomPage from "./components/main/SearchRoom";
 import ChatBoxAL from "./components/main/ChatBoxAl";
-import CustomerChat from "./components/main/CustomerChat";
 import HotelHighlightsCarousel from "./components/main/Hotel-Highlights";
 import ChatBox from "./components/main/ChatBox";
+import RoomTypeShowcase from "./components/main/RoomTypeShowcase";
+import Footer2 from "./components/footer/foorter2";
+import TestimonialCarousel from "./components/common/CustomerReviewed";
 
 const Page = () => {
   return (
@@ -18,12 +19,13 @@ const Page = () => {
       <Banner />
       <ShearchRoomPage />
       <BeanHotel />
-      <RoomShow />
+      <RoomTypeShowcase />
       <HotelShow />
       <HotelHighlightsCarousel />
       <ChatBoxAL />
-      {/* <CustomerChat /> */}
       <ChatBox />
+      <TestimonialCarousel />
+      <Footer2 />
     </div>
   );
 };

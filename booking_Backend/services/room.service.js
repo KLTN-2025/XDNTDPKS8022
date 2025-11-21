@@ -4,6 +4,7 @@ import {
   deletedRoomRepo,
   deleteImageToRoomRepo,
   findBookedDateRangesRepo,
+  findRoomForSeason,
   findRoomNumber,
   getAllRoomRepo,
   getRoomCustomerRepo,
@@ -12,22 +13,8 @@ import {
   updateRoomRepo,
 } from "../repositories/room.repo.js";
 
-export async function createRoomService({
-  roomNumber,
-  floor,
-  status,
-  notes,
-  roomTypeId,
-  imageUrls,
-}) {
-  const newRoom = await createRoomRepo({
-    roomNumber,
-    floor,
-    status,
-    notes: notes ? notes : null,
-    roomTypeId,
-    imageUrls,
-  });
+export async function createRoomService(data) {
+  const newRoom = await createRoomRepo(data);
   return newRoom;
 }
 
@@ -75,23 +62,14 @@ export async function deleteRoomService(id) {
   return deletedRoom;
 }
 
-export async function updateRoomService(
-  id,
-  { roomNumber, floor, status, notes, roomTypeId }
-) {
-  if (roomNumber) {
-    const findRoom = await findRoomNumber(roomNumber);
+export async function updateRoomService(id, data) {
+  if (data.roomNumber) {
+    const findRoom = await findRoomNumber(data.roomNumber);
     if (findRoom && findRoom.id !== id) {
       throw new Error("Số Phòng Đã Tồn Tại ");
     }
   }
-  const updatedRoom = await updateRoomRepo(id, {
-    roomNumber,
-    floor,
-    status,
-    notes,
-    roomTypeId,
-  });
+  const updatedRoom = await updateRoomRepo(id, data);
   return updatedRoom;
 }
 
@@ -132,9 +110,61 @@ export async function getRoomByIdService(id) {
 
 export async function getBookedDatesService(roomId) {
   const bookings = await findBookedDateRangesRepo(roomId);
+  function formatDateToLocal(dateString) {
+    const date = new Date(dateString);
+    date.setHours(date.getHours() + 7);
+    return date.toISOString().split("T")[0];
+  }
+
   return bookings.map((booking) => ({
-    start: new Date(booking.checkInDate).toISOString().split("T")[0],
-    end: new Date(booking.checkOutDate).toISOString().split("T")[0],
+    start: formatDateToLocal(booking.checkInDate),
+    end: formatDateToLocal(booking.checkOutDate),
     status: booking.status,
   }));
+}
+
+export async function CalculatePriceRoomService(
+  bookingStart,
+  bookingEnd,
+  roomId
+) {
+  const room = await findRoomForSeason(roomId);
+  if (!room) throw new Error("Không tìm thấy phòng.");
+
+  const start = new Date(bookingStart);
+  const end = new Date(bookingEnd);
+  start.setHours(0, 0, 0, 0);
+  end.setHours(0, 0, 0, 0);
+
+  const activeSeason = room.seasonalRates.find((s) => s.isActive);
+  let total = 0;
+
+  // Duyệt từng ngày trong khoảng
+  for (let d = start; d < end; d.setDate(d.getDate() + 1)) {
+    const currentDay = new Date(d);
+    currentDay.setHours(0, 0, 0, 0);
+    // Xác định nếu ngày này thuộc mùa nào
+    const season = room.seasonalRates.find((s) => {
+      const sStart = new Date(s.startDate);
+      const sEnd = new Date(s.endDate);
+      sStart.setHours(0, 0, 0, 0);
+      sEnd.setHours(0, 0, 0, 0);
+      return currentDay >= sStart && currentDay <= sEnd;
+    });
+
+    const dailyPrice = season
+      ? Number(room.currentPrice)
+      : Number(room.originalPrice);
+
+    total += dailyPrice;
+  }
+
+  return {
+    total,
+    currentPrice: Number(room.currentPrice),
+    originalPrice: Number(room.originalPrice),
+    displayPrice: activeSeason
+      ? Number(room.currentPrice)
+      : Number(room.originalPrice),
+  };
 }

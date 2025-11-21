@@ -121,10 +121,8 @@ export async function updateEmployeeRepo(id, employeeData) {
     },
     include: {
       user: true,
-    },
+    },  
     data: {
-      department: employeeData.department,
-      position: employeeData.position,
       user: {
         update: {
           firstName: employeeData.firstName,

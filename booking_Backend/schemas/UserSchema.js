@@ -18,10 +18,8 @@ export const userSchema = z.object({
     .string()
     .min(8, { message: "Vui lòng nhập tối thiểu 8 kí tự" })
     .max(255, { message: "Mật khẩu quá dài" }),
-  address: z.string().min(1, { message: "Vui lòng nhập địa chỉ" }),
-  city: z.string().min(1, { message: "Vui lòng nhập thành phố" }),
   country: z.string().min(1, { message: "Vui lòng nhập quốc gia" }),
-  idNumber: z.string().min(1, { message: "Vui lòng nhập số CMND/CCCD" }),
+  idNumber: z.string().min(1, { message: "Vui lòng nhập số CCCD/Passport" }),
 });
 
 export const UserUpdateSchema = z.object({
@@ -40,6 +38,26 @@ export const UserUpdateSchema = z.object({
     .min(9, "CMND/CCCD phải có ít nhất 9 số")
     .max(12, "CMND/CCCD không được vượt quá 12 số")
     .regex(/^\d+$/, "CMND/CCCD chỉ được chứa số"),
+});
+const phoneRegex = /^(?:\+84|0)\d{9,10}$/;
+
+export const GuestSchema = z.object({
+  fullName: z
+    .string()
+    .min(2, { message: "Họ tên phải có ít nhất 2 ký tự" })
+    .max(100, { message: "Họ tên quá dài" })
+    .trim(),
+  email: z.string().email({ message: "Email không hợp lệ" }),
+  phone: z
+    .string()
+    .regex(phoneRegex, { message: "Số điện thoại không hợp lệ" }),
+  idNumber: z
+    .string()
+    .min(6, { message: "idNumber quá ngắn" })
+    .max(20, { message: "idNumber quá dài" })
+    .trim(),
+  checkInDate: z.string().min(1, "checkInDate không được để trống"),
+  checkOutDate: z.string().min(1, "checkOutDate không được để trống"),
 });
 
 export const CreateCustomer = z.object({

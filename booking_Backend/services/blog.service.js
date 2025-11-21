@@ -1,9 +1,11 @@
 import {
   createBlogRepo,
+  deleteBlogRepo,
   getBlogEmployeeRepo,
   getBlogRepo,
   getBlogToSlugRepo,
   publishedBlogRepo,
+  updateBlogRepo,
 } from "../repositories/blog.repo.js";
 
 export async function getBlogService() {
@@ -49,4 +51,14 @@ export async function createBlogService({
 export async function publishedBlogService(id) {
   const publishedBlog = await publishedBlogRepo(id);
   return publishedBlog;
+}
+
+export async function deleteBlogService(id) {
+  const deletedBlog = await deleteBlogRepo(id);
+  return deletedBlog;
+}
+
+export async function updateBlogService(id, data) {
+  const updateBlog = await updateBlogRepo(id, data);
+  return updateBlog;
 }

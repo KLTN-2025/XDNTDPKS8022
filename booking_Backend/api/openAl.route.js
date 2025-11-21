@@ -1,8 +1,12 @@
 import Express from "express";
-import { chatController } from "../controller/openai.Controller.js";
+import {
+  chatController,
+  generatePost,
+} from "../controller/openai.Controller.js";
 
 const routerOpenAi = Express.Router();
 
 routerOpenAi.post("/", chatController);
+routerOpenAi.post("/generate-post", generatePost);
 
 export default routerOpenAi;

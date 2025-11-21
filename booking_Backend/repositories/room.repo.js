@@ -7,6 +7,7 @@ export async function createRoomRepo(data) {
       floor: data.floor,
       status: data.status,
       notes: data.notes || null,
+      originalPrice: data.originalPrice,
       roomTypeId: data.roomTypeId,
       images: data.imageUrls
         ? {
@@ -90,6 +91,8 @@ export async function getAllRoomRepo(
         status: true,
         notes: true,
         roomTypeId: true,
+        currentPrice: true,
+        originalPrice: true,
         bookingItems: {
           select: {
             booking: {
@@ -112,7 +115,6 @@ export async function getAllRoomRepo(
             id: true,
             name: true,
             maxOccupancy: true,
-            basePrice: true,
           },
         },
       },
@@ -153,6 +155,8 @@ export async function updateRoomRepo(id, data) {
     data: {
       roomNumber: data.roomNumber,
       floor: data.floor,
+      originalPrice: data.originalPrice,
+      currentPrice: data.originalPrice,
       status: data.status,
       notes: data.notes || null,
       roomTypeId: data.roomTypeId,
@@ -225,6 +229,8 @@ export async function getRoomCustomerRepo(
       roomNumber: true,
       roomTypeId: true,
       status: true,
+      currentPrice: true,
+      originalPrice: true,
       images: {
         select: {
           id: true,
@@ -235,7 +241,6 @@ export async function getRoomCustomerRepo(
         select: {
           name: true,
           maxOccupancy: true,
-          basePrice: true,
           amenities: {
             select: {
               amenity: {
@@ -260,11 +265,15 @@ export async function getRoomsByRoomTypeIdRepo(id) {
       id: true,
       name: true,
       maxOccupancy: true,
-      basePrice: true,
+      photoUrls: true,
+      description: true,
       rooms: {
         select: {
           id: true,
           roomNumber: true,
+          currentPrice: true,
+          originalPrice: true,
+
           images: {
             select: {
               id: true,
@@ -297,6 +306,7 @@ export async function getRoomIdRepo(id) {
       id: true,
       roomNumber: true,
       floor: true,
+      originalPrice: true,
       status: true,
       notes: true,
       images: true,
@@ -333,6 +343,15 @@ export async function findBookedDateRangesRepo(roomId) {
       checkInDate: true,
       checkOutDate: true,
       status: true,
+    },
+  });
+}
+
+export async function findRoomForSeason(id) {
+  return await prisma.room.findUnique({
+    where: { id },
+    include: {
+      seasonalRates: true, // lấy tất cả season
     },
   });
 }

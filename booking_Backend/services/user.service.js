@@ -13,11 +13,16 @@ import {
   updateUserId,
   updateUserPassword,
   updateUserToken,
+  createGuestRepo,
+  findIDNumberGuest,
 } from "../repositories/user.repo.js";
 import NotFoundError from "../errors/not-found.error.js";
 import { sendResetMail } from "../lib/mailer.js";
+import { prisma } from "../lib/client.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
+const REFRESH_TOKEN_SECRET =
+  process.env.REFRESH_TOKEN_SECRET || "refresh-secret-key";
 
 export default async function signUp({
   firstName,
@@ -66,7 +71,6 @@ export default async function signUp({
     { expiresIn: "1h" }
   );
 
-  // Nếu bạn vẫn muốn lưu token:
   await updateUserToken(newUser.id, token);
 
   return { accessToken: token, user: newUser };
@@ -74,9 +78,11 @@ export default async function signUp({
 
 export async function login({ email, password, remember }) {
   const user = await findUserByEmail(email);
+
   if (!user) {
     throw new NotFoundError("Người dùng không tồn tại");
   }
+
   if (user.status !== "ACTIVE") {
     throw new NotFoundError("Tài Khoản Đã Bị Hạn Chế Vui Lòng Liên Hệ ADMIN");
   }
@@ -90,20 +96,38 @@ export async function login({ email, password, remember }) {
   if (user.userType === "EMPLOYEE" && user.employee) {
     role = user.employee.roles[0]?.role?.name || "";
   }
-  const token = jwt.sign(
-    {
-      id: user.id,
-      userType: user.userType,
-      lastName: user.lastName,
-      role,
-    },
-    JWT_SECRET,
-    {
-      expiresIn: remember === true ? "3h" : "1h",
-    }
-  );
 
-  return { accessToken: token };
+  const payload = {
+    id: user.id,
+    userType: user.userType,
+    lastName: user.lastName,
+    role,
+  };
+
+  const token = jwt.sign(payload, JWT_SECRET, {
+    expiresIn: remember ? "20m" : "15m",
+  });
+
+  const refreshToken = jwt.sign(payload, REFRESH_TOKEN_SECRET, {
+    expiresIn: "7d",
+  });
+
+  return { accessToken: token, refreshToken };
+}
+
+export async function refreshTokenService(refreshToken) {
+  if (!refreshToken) throw new NotFoundError("Thiếu refresh token");
+
+  const decoded = jwt.verify(refreshToken, REFRESH_TOKEN_SECRET);
+
+  const payload = {
+    id: decoded.id,
+    userType: decoded.userType,
+    lastName: decoded.lastName,
+    role: decoded.role,
+  };
+  const newAccessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: "1h" });
+  return newAccessToken;
 }
 
 export async function updateUser(
@@ -208,4 +232,39 @@ export async function disableUserService(userId) {
 
   const updatedUser = await disableUserRepo(userId);
   return updatedUser;
+}
+
+export async function createGuestService(data) {
+  const existIdNumber = await findIDNumber(data.idNumber);
+  if (existIdNumber) {
+    throw new Error("CCCD đã tồn tại trong hệ thống");
+  }
+  const existGuest = await findIDNumberGuest(data.idNumber);
+
+  if (existGuest) {
+    // Kiểm tra xem guest này có booking trong thời gian sắp tới không
+    const activeBooking = await prisma.booking.findFirst({
+      where: {
+        guestId: existGuest.id,
+        checkOutDate: { gte: new Date(data.checkInDate) },
+        checkInDate: { lte: new Date(data.checkOutDate) },
+        status: { in: ["CONFIRMED", "PENDING", "CHECKED_IN"] },
+      },
+      include: {
+        bookingItems: { include: { room: true } },
+      },
+    });
+    if (activeBooking) {
+      throw new Error(
+        `Người này đã có đặt phòng ${activeBooking.bookingItems[0].room.roomNumber} từ ${new Date(
+          activeBooking.checkInDate
+        ).toLocaleDateString("vi-VN")} đến ${new Date(
+          activeBooking.checkOutDate
+        ).toLocaleDateString("vi-VN")}. Vui lòng chọn thời gian khác.`
+      );
+    }
+  }
+
+  const result = await createGuestRepo(data);
+  return result;
 }

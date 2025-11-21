@@ -3,6 +3,7 @@ import Footer from "./components/footer/Footer";
 import Header from "./components/header/Header";
 import { Inter } from "next/font/google";
 import HeaderTop from "./components/header/HeaderTop";
+import UserProvider from "../(dashboard)/context/UserProvider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -19,14 +20,16 @@ export default function RootLayout({
 }) {
   return (
     <div className={`${inter.className} flex flex-col h-screen`}>
-      <header>
-        <HeaderTop />
-        <Header />
-      </header>
-      <main className="flex-1">{children}</main>
-      <footer className="mt-20">
-        <Footer />
-      </footer>
+      <UserProvider>
+        <header>
+          <HeaderTop />
+          <Header />
+        </header>{" "}
+        <main className="flex-1">{children}</main>
+        <footer className="">
+          <Footer />
+        </footer>
+      </UserProvider>
     </div>
   );
 }

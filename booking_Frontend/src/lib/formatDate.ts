@@ -14,8 +14,8 @@ export const formatDate = (dateString: Date | null | string) => {
 };
 
 export const calculateNights = (
-  checkInDate: Date | null,
-  checkOutDate: Date | null
+  checkInDate: Date | string | null,
+  checkOutDate: Date | string | null
 ) => {
   if (checkInDate == null || checkOutDate == null) return null;
 

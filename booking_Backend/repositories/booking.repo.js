@@ -11,6 +11,15 @@ export async function checkStatusBooking(id) {
   });
 }
 
+export async function FindRoom(roomId) {
+  return prisma.room.findUnique({
+    where: { id: roomId },
+    select: {
+      roomNumber: true,
+    },
+  });
+}
+
 export async function BookingRepo({
   customerId,
   checkInDate,
@@ -22,6 +31,7 @@ export async function BookingRepo({
   discountId,
   pricePerNight,
   roomId,
+  guestId,
 }) {
   const validCheckInDate = new Date(checkInDate);
   const validCheckOutDate = new Date(checkOutDate);
@@ -34,6 +44,7 @@ export async function BookingRepo({
       customerId,
       totalAmount,
       totalGuests,
+      guestId: guestId || null,
       specialRequests: specialRequests || null,
       bookingSource,
       status: "PENDING",
@@ -56,6 +67,59 @@ export async function BookingRepo({
   });
 }
 
+export async function overlappingBooking(
+  checkInDate,
+  checkOutDate,
+  customerId,
+  guestId
+) {
+  console.log(checkInDate, checkOutDate, customerId, guestId);
+
+  if (!checkInDate || !checkOutDate)
+    throw new Error("Thiếu ngày check-in/check-out");
+
+  const checkIn = new Date(checkInDate);
+  const checkOut = new Date(checkOutDate);
+
+  if (isNaN(checkIn.getTime()) || isNaN(checkOut.getTime())) {
+    throw new Error("Ngày check-in/check-out không hợp lệ");
+  }
+  // Nếu là khách chính
+  if (customerId && !guestId) {
+    const customerOverlap = await prisma.booking.findFirst({
+      where: {
+        customerId: customerId,
+        guestId: null,
+        AND: [
+          { checkInDate: { lt: checkOut } },
+          { checkOutDate: { gt: checkIn } },
+        ],
+        status: { in: ["CONFIRMED", "PENDING", "CHECKED_IN"] },
+      },
+    });
+    if (customerOverlap) return { type: "customer", booking: customerOverlap };
+  }
+
+  // Nếu là khách được đặt hộ
+  if (customerId && guestId) {
+    const guestOverlap = await prisma.booking.findFirst({
+      where: {
+        guestId: guestId,
+        AND: [
+          { checkInDate: { lt: checkOut } },
+          { checkOutDate: { gt: checkIn } },
+        ],
+        status: { in: ["CONFIRMED", "PENDING", "CHECKED_IN"] },
+      },
+    });
+    if (guestOverlap) return { type: "guest", booking: guestOverlap };
+    return null;
+  }
+
+  // Nếu không có trùng
+  return null;
+}
+
 export async function getAllBookingRepo(
   idNumber,
   status,
@@ -73,7 +137,6 @@ export async function getAllBookingRepo(
   } else {
     orderBy = { bookingDate: "desc" };
   }
-  console.log(orderBy, "laf : ");
 
   return await prisma.booking.findMany({
     where: {
@@ -97,6 +160,8 @@ export async function getAllBookingRepo(
       status: true,
       totalAmount: true,
       totalGuests: true,
+      createdAt: true,
+      updatedAt: true,
       bookingItems: {
         select: {
           room: {
@@ -120,6 +185,8 @@ export async function getAllBookingRepo(
             select: {
               firstName: true,
               lastName: true,
+              email: true,
+              phone: true,
             },
           },
         },
@@ -129,6 +196,8 @@ export async function getAllBookingRepo(
           id: true,
           status: true,
           paymentMethod: true,
+          transactionId: true,
+          amount: true,
         },
       },
     },
@@ -268,7 +337,17 @@ export async function getBookingForUserRepo(id) {
       bookingSource: true,
       totalAmount: true,
       customerId: true,
-
+      guest: true,
+      customer: {
+        select: {
+          user: {
+            select: {
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
+      },
       bookingItems: {
         select: {
           pricePerNight: true,
@@ -291,7 +370,9 @@ export async function getBookingForUserRepo(id) {
                   },
                 },
               },
-              images: true,
+              images: {
+                take: 1,
+              },
             },
           },
         },

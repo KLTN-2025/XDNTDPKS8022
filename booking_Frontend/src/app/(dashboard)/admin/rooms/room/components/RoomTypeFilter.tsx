@@ -11,7 +11,6 @@ export interface RoomTypeOption {
   id: string;
   name: string;
   maxOccupancy?: number;
-  basePrice?: number;
 }
 
 interface RoomTypeFilterProps {
@@ -23,7 +22,6 @@ interface RoomTypeFilterProps {
   className?: string;
   multiple?: boolean;
   showCapacity?: boolean;
-  showPrice?: boolean;
 }
 
 export function RoomTypeFilter({
@@ -35,7 +33,6 @@ export function RoomTypeFilter({
   className,
   multiple = true,
   showCapacity = false,
-  showPrice = false,
 }: RoomTypeFilterProps) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -161,13 +158,6 @@ export function RoomTypeFilter({
                                 />
                               </svg>
                               {option.maxOccupancy} người
-                            </span>
-                          )}
-
-                          {showPrice && Number(option.basePrice) && (
-                            <span className="text-xs font-medium text-primary">
-                              {Number(option.basePrice).toLocaleString("vi-VN")}
-                              đ
                             </span>
                           )}
                         </div>
