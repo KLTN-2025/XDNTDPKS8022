@@ -1,40 +1,11 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Link from "next/link";
 import AccountUser from "./AccountUser";
-import { useRouter } from "next/navigation";
-import { jwtDecode } from "jwt-decode";
-
-interface MyTokenPayload {
-  userType: string;
-  lastName: string;
-}
+import { useUserStore } from "@/hook/useUserStore";
 
 const HeaderTop = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userData, setUserData] = useState({
-    userType: "",
-    lastName: "",
-  });
-  const router = useRouter();
-
-  useEffect(() => {
-    const savedToken = localStorage.getItem("token");
-    if (savedToken) {
-      const decoded = jwtDecode<MyTokenPayload>(savedToken);
-      setIsLoggedIn(true);
-      setUserData({
-        userType: decoded?.userType || "",
-        lastName: decoded?.lastName || "",
-      });
-    } else {
-      setIsLoggedIn(false);
-      setUserData({
-        userType: "",
-        lastName: "",
-      });
-    }
-  }, [router, isLoggedIn]);
+  const { user } = useUserStore(); // lấy user global từ store
 
   return (
     <div className="h-8 bg-black shadow-md">
@@ -45,12 +16,8 @@ const HeaderTop = () => {
           </div>
 
           <div className="flex items-center space-x-4 text-sm mt-2">
-            {isLoggedIn ? (
-              <AccountUser
-                setIsLoggedIn={setIsLoggedIn}
-                userType={userData.userType}
-                lastName={userData.lastName}
-              />
+            {user ? (
+              <AccountUser userType={user.userType} lastName={user.lastName} />
             ) : (
               <div className="flex items-center space-x-4">
                 <Link href={"/signIn"}>

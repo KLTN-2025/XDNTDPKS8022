@@ -10,66 +10,7 @@ import "swiper/css";
 import "swiper/css/effect-fade";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
-
-interface Amenity {
-  amenity: {
-    id: string;
-    name: string;
-  };
-}
-
-interface RoomType {
-  id: string;
-  name: string;
-  amenities: Amenity[];
-}
-
-interface Room {
-  roomNumber: string;
-  floor: number;
-  roomType: RoomType;
-  images: {
-    id: string;
-    imageUrl: string;
-  }[];
-}
-
-interface BookingItem {
-  id: string;
-  room: Room;
-  pricePerNight: string;
-}
-
-interface Payment {
-  id: string;
-  paymentMethod: string;
-  status: string;
-  amount: string;
-  paymentDate: string;
-}
-
-interface Booking {
-  id: string;
-  bookingDate: string;
-  checkInDate: string;
-  checkOutDate: string;
-  totalGuests: number;
-  status: string;
-  bookingSource: string;
-  totalAmount: string;
-  bookingItems: BookingItem[];
-  payments: Payment[];
-  discount: null | {
-    code: string;
-    percentage: number;
-  };
-  customer?: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-  };
-}
+import { Booking } from "../components/profileBooking";
 
 const Page = () => {
   const { data, isLoading } = useSWR(
@@ -95,7 +36,7 @@ const Page = () => {
         {data && data?.data?.length > 0 ? (
           <>
             {data?.data.map((item: Booking, index: number) => (
-              <SwiperSlide key={index} className="">
+              <SwiperSlide key={index} className="w-full h-screen">
                 <BookingDetails booking={item} />
               </SwiperSlide>
             ))}

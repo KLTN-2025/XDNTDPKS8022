@@ -19,6 +19,8 @@ import { CustomerForm } from "../page";
 import useSWR from "swr";
 import FormPaymentBooking from "./FormPaymentBooking";
 import toast from "react-hot-toast";
+import { getExcludeDates, getHighlightedDates } from "@/lib/formatDate";
+import { ShowCurrentPrice } from "@/lib/showCurrentPrice";
 
 interface IProvide {
   code: number;
@@ -38,17 +40,13 @@ export interface BookingFormData {
   totalAmount: number;
 }
 
-interface IDateInterval {
-  start: Date;
-  end: Date;
-}
-
 interface Room {
   id: string;
   roomNumber: string;
   floor: number;
   status: string;
-  roomType: { name: string; maxOccupancy: number; basePrice: string };
+  originalPrice: number;
+  roomType: { name: string; maxOccupancy: number };
 }
 
 const fetcher = (url: string) =>
@@ -63,6 +61,11 @@ export default function BookingForm({
   setFormCustomer,
 }: IBookingForm) {
   const [isOpen, setIsOpen] = useState(false);
+  const [bookedDates, setBookedDates] = useState<Date[]>([]);
+  const [highlightedDates, setHighlightedDates] = useState<
+    { [className: string]: Date[] }[]
+  >([]);
+
   const [booking, setBooking] = useState<BookingFormData>({
     customerId: "",
     checkInDate: null,
@@ -76,6 +79,31 @@ export default function BookingForm({
     totalAmount: 0,
   });
 
+  const [seasonPrice, setSeasonPrice] = useState({
+    total: 0,
+    currentPrice: 0,
+    originalPrice: 0,
+    displayPrice: 0,
+  });
+  // hafm tinhs gia
+  useEffect(() => {
+    async function fetchPrice() {
+      const price = await ShowCurrentPrice({
+        bookingStart: booking.checkInDate,
+        bookingEnd: booking.checkOutDate,
+        roomId: booking.roomId,
+      });
+      setSeasonPrice(price);
+      setBooking((prev) => ({
+        ...prev,
+        pricePerNight: Number(price.displayPrice || 0),
+        totalAmount: Number(price.total || 0),
+      }));
+    }
+    if (booking.roomId) {
+      fetchPrice();
+    }
+  }, [booking.checkInDate, booking.checkOutDate, booking.roomId]);
   const handleComplete = () => {
     if (
       !booking.checkInDate ||
@@ -88,57 +116,28 @@ export default function BookingForm({
     }
     setIsOpen(true);
   };
-
+  console.log(booking);
   const { data: dataProvide } = useSWR<IProvide[]>(
     `https://provinces.open-api.vn/api/v1/p`,
     fetcher
   );
-
   const { data: dataDate } = useSWR(
     `/api/room/${booking.roomId ? booking.roomId : null}/booked-dates`
   );
 
   const { data: dataSelectRoom } = useSWR(`/api/room?limit=9999`);
 
-  // loại bỏ cac ngày khách hàng trước đã chọn or ...
-  const excludeDateIntervals: IDateInterval[] =
-    dataDate?.map((item: { start: string; end: string }) => ({
-      start: new Date(item.start),
-      end: new Date(item.end),
-    })) || [];
-
   useEffect(() => {
-    const checkDateInExclude = (
-      date: Date | null,
-      type: "checkInDate" | "checkOutDate"
-    ) => {
-      if (!date) return;
-      const isInExclude = excludeDateIntervals.some(
-        (interval) => date >= interval.start && date <= interval.end
-      );
-      if (isInExclude) {
-        toast.error(
-          type === "checkInDate"
-            ? "Ngày nhận phòng bạn chọn đã có người đặt trước, vui lòng chọn ngày khác!"
-            : "Ngày trả phòng bạn chọn đã có người đặt trước, vui lòng chọn ngày khác!"
-        );
-        setBooking((prev) => ({ ...prev, [type]: null }));
-      }
-    };
-
-    checkDateInExclude(
-      booking.checkInDate ? new Date(booking.checkInDate) : null,
-      "checkInDate"
-    );
-    checkDateInExclude(
-      booking.checkOutDate ? new Date(booking.checkOutDate) : null,
-      "checkOutDate"
-    );
-  }, [excludeDateIntervals, booking.checkInDate, booking.checkOutDate]);
+    if (dataDate) {
+      setHighlightedDates(getHighlightedDates(dataDate));
+      setBookedDates(getExcludeDates(dataDate));
+    }
+  }, [dataDate]);
 
   const rooms = useMemo(() => {
     return (dataSelectRoom?.room?.data as Room[]) || [];
   }, [dataSelectRoom]); //handlechang
+
   const handlechange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -163,16 +162,6 @@ export default function BookingForm({
       [name]: date ? date.toISOString() : "",
     }));
   };
-
-  // kiểm tra nếu chọn phòng nhận luôn cả giá phòng
-  useEffect(() => {
-    if (!booking.roomId || rooms.length === 0) return;
-    const room = rooms.find((c) => c.id === booking.roomId);
-    setBooking((prev) => ({
-      ...prev,
-      pricePerNight: Number(room?.roomType.basePrice),
-    }));
-  }, [booking.roomId, rooms]);
 
   useEffect(() => {
     if (formCustomer.id) {
@@ -351,60 +340,6 @@ export default function BookingForm({
               }
             />
           </div>
-          {/* Fourth Row - Date and Package */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-            <div className="space-y-2">
-              <Label
-                htmlFor="checkInOut"
-                className="text-sm font-medium text-gray-700"
-              >
-                Ngaỳ Nhận Phòng*
-              </Label>
-              <div className="relative border border-blue-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
-                <DatePicker
-                  selected={
-                    booking.checkInDate ? new Date(booking.checkInDate) : null
-                  }
-                  onChange={(date) => handleDateChange("checkInDate", date)}
-                  placeholderText="dd/MM/yyyy"
-                  dateFormat="dd/MM/yyyy"
-                  className="w-full py-4 pl-4"
-                  required
-                  minDate={new Date()}
-                  excludeDateIntervals={excludeDateIntervals}
-                />
-                <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label
-                htmlFor="checkInOut"
-                className="text-sm font-medium text-gray-700"
-              >
-                Ngaỳ Trả Phòng*
-              </Label>
-              <div className="relative w-full border border-blue-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
-                <DatePicker
-                  selected={
-                    booking.checkOutDate ? new Date(booking.checkOutDate) : null
-                  }
-                  onChange={(date) => handleDateChange("checkOutDate", date)}
-                  placeholderText="dd/MM/yyyy"
-                  dateFormat="dd/MM/yyyy"
-                  className="w-full py-4 pl-4"
-                  required
-                  minDate={
-                    booking.checkInDate
-                      ? new Date(booking.checkInDate)
-                      : new Date()
-                  }
-                  excludeDateIntervals={excludeDateIntervals}
-                />
-                <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              </div>
-            </div>
-          </div>
-
           {/* Fifth Row - Total Person and Room Type */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2 w-full">
@@ -457,6 +392,61 @@ export default function BookingForm({
               />
             </div>
           </div>
+          {/* Fourth Row - Date and Package */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+            <div className="space-y-2">
+              <Label
+                htmlFor="checkInOut"
+                className="text-sm font-medium text-gray-700"
+              >
+                Ngaỳ Nhận Phòng*
+              </Label>
+              <div className="relative border border-blue-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                <DatePicker
+                  selected={
+                    booking.checkInDate ? new Date(booking.checkInDate) : null
+                  }
+                  onChange={(date) => handleDateChange("checkInDate", date)}
+                  excludeDates={bookedDates}
+                  highlightDates={highlightedDates}
+                  placeholderText="dd/MM/yyyy"
+                  dateFormat="dd/MM/yyyy"
+                  className="w-full py-4 pl-4"
+                  required
+                  minDate={new Date()}
+                />
+                <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label
+                htmlFor="checkInOut"
+                className="text-sm font-medium text-gray-700"
+              >
+                Ngaỳ Trả Phòng*
+              </Label>
+              <div className="relative w-full border border-blue-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                <DatePicker
+                  selected={
+                    booking.checkOutDate ? new Date(booking.checkOutDate) : null
+                  }
+                  onChange={(date) => handleDateChange("checkOutDate", date)}
+                  excludeDates={bookedDates}
+                  highlightDates={highlightedDates}
+                  placeholderText="dd/MM/yyyy"
+                  dateFormat="dd/MM/yyyy"
+                  className="w-full py-4 pl-4"
+                  required
+                  minDate={
+                    booking.checkInDate
+                      ? new Date(booking.checkInDate)
+                      : new Date()
+                  }
+                />
+                <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              </div>
+            </div>
+          </div>
 
           {/* Note Field */}
           <div className="space-y-2">
@@ -495,6 +485,7 @@ export default function BookingForm({
         isOpen={isOpen}
         setFormBooking={setBooking}
         setIsOpen={setIsOpen}
+        seasonPrice={seasonPrice}
       />
     </>
   );

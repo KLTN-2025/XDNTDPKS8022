@@ -5,15 +5,16 @@ import {
   Heading1,
   Heading2,
   ImageDownIcon,
-  ImageIcon,
   Italic,
   List,
   ListOrdered,
   Quote,
+  X,
 } from "lucide-react";
-import React from "react";
+import React, { useEffect } from "react";
 import { PostData } from "../add/page";
 import Image from "next/image";
+import PreviewButton from "./PreviewButton";
 
 interface IFormBlog {
   handleSubmit: (e: React.FormEvent) => Promise<void>;
@@ -33,6 +34,27 @@ const FormBlog = ({
     const { name, value } = e.target;
     setPostData((prev) => ({ ...prev, [name]: value }));
   };
+
+  useEffect(() => {
+    if (!editor) return;
+
+    // Set content ban đầu
+    if (postData.content) {
+      editor.commands.setContent(postData.content);
+    }
+
+    // Cập nhật postData khi editor thay đổi
+    editor.on("update", () => {
+      setPostData((prev) => ({
+        ...prev,
+        content: editor.getHTML(),
+      }));
+    });
+
+    return () => {
+      editor.off("update");
+    };
+  }, [editor, postData.content]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
@@ -73,12 +95,26 @@ const FormBlog = ({
           </label>
           <div className="flex flex-col items-start">
             {postData.coverImage ? (
-              <Image
-                alt=""
-                src={postData.coverImage}
-                width={300}
-                height={300}
-              />
+              <div className="relative inline-block">
+                <Image
+                  alt=""
+                  src={postData.coverImage}
+                  width={300}
+                  height={300}
+                />
+                <button
+                  onClick={() =>
+                    setPostData((prev) => ({
+                      ...prev,
+                      coverImage: "",
+                    }))
+                  }
+                  className="absolute cursor-pointer top-2 right-2 bg-black/50 hover:bg-black/70 text-white rounded-full w-10 h-10 flex items-center justify-center transition-colors"
+                  aria-label="Close"
+                >
+                  <X />
+                </button>
+              </div>
             ) : (
               <UploadButton
                 className="text-black py-2 px-4 rounded cursor-pointer text-2xl w-full h-[140px] border-2 border-dashed border-gray-300 hover:bg-gray-50"
@@ -99,9 +135,6 @@ const FormBlog = ({
                     return (
                       <div className="flex flex-col items-center justify-center gap-2">
                         <ImageDownIcon className="text-gray-500 w-8 h-8" />
-                        <span className="text-sm text-gray-500">
-                          Tải lên ảnh bìa
-                        </span>
                       </div>
                     );
                   },
@@ -117,134 +150,114 @@ const FormBlog = ({
         </div>
       </div>
 
-      <div>
+      <div className="prose whitespace-pre-line">
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Nội dung
         </label>
         <div className="border rounded-lg overflow-hidden">
-          <div className="flex flex-wrap gap-1 p-2 bg-gray-50 border-b">
-            <button
-              type="button"
-              onClick={() => editor?.chain().focus().toggleBold().run()}
-              className={`p-2 rounded ${
-                editor?.isActive("bold") ? "bg-gray-200" : "hover:bg-gray-100"
-              }`}
-              title="In đậm"
-            >
-              <Bold className="w-5 h-5" />
-            </button>
+          <div className=" flex justify-between gap-1 p-2 bg-gray-50 border-b items-center ">
+            <div className="flex ">
+              <button
+                type="button"
+                onClick={() => editor?.chain().focus().toggleBold().run()}
+                className={`p-2 rounded ${
+                  editor?.isActive("bold") ? "bg-gray-200" : "hover:bg-gray-100"
+                }`}
+                title="In đậm"
+              >
+                <Bold className="w-5 h-5" />
+              </button>
 
-            <button
-              type="button"
-              onClick={() => editor?.chain().focus().toggleItalic().run()}
-              className={`p-2 rounded ${
-                editor?.isActive("italic") ? "bg-gray-200" : "hover:bg-gray-100"
-              }`}
-              title="In nghiêng"
-            >
-              <Italic className="w-5 h-5" />
-            </button>
+              <button
+                type="button"
+                onClick={() => editor?.chain().focus().toggleItalic().run()}
+                className={`p-2 rounded ${
+                  editor?.isActive("italic")
+                    ? "bg-gray-200"
+                    : "hover:bg-gray-100"
+                }`}
+                title="In nghiêng"
+              >
+                <Italic className="w-5 h-5" />
+              </button>
 
-            <button
-              type="button"
-              onClick={() =>
-                editor?.chain().focus().toggleHeading({ level: 1 }).run()
-              }
-              className={`p-2 rounded ${
-                editor?.isActive("heading", { level: 1 })
-                  ? "bg-gray-200"
-                  : "hover:bg-gray-100"
-              }`}
-              title="Tiêu đề 1"
-            >
-              <Heading1 className="w-5 h-5" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() =>
-                editor?.chain().focus().toggleHeading({ level: 2 }).run()
-              }
-              className={`p-2 rounded ${
-                editor?.isActive("heading", { level: 2 })
-                  ? "bg-gray-200"
-                  : "hover:bg-gray-100"
-              }`}
-              title="Tiêu đề 2"
-            >
-              <Heading2 className="w-5 h-5" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => editor?.chain().focus().toggleBulletList().run()}
-              className={`p-2 rounded ${
-                editor?.isActive("bulletList")
-                  ? "bg-gray-200"
-                  : "hover:bg-gray-100"
-              }`}
-              title="Danh sách không thứ tự"
-            >
-              <List className="w-5 h-5" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => editor?.chain().focus().toggleOrderedList().run()}
-              className={`p-2 rounded ${
-                editor?.isActive("orderedList")
-                  ? "bg-gray-200"
-                  : "hover:bg-gray-100"
-              }`}
-              title="Danh sách có thứ tự"
-            >
-              <ListOrdered className="w-5 h-5" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => editor?.chain().focus().toggleBlockquote().run()}
-              className={`p-2 rounded ${
-                editor?.isActive("blockquote")
-                  ? "bg-gray-200"
-                  : "hover:bg-gray-100"
-              }`}
-              title="Trích dẫn"
-            >
-              <Quote className="w-5 h-5" />
-            </button>
-
-            <UploadButton
-              className="mt-4"
-              endpoint="imageUploader"
-              onClientUploadComplete={(res) => {
-                if (res && res[0].url) {
-                  editor?.chain().focus().setImage({ src: res[0].url }).run();
+              <button
+                type="button"
+                onClick={() =>
+                  editor?.chain().focus().toggleHeading({ level: 1 }).run()
                 }
-              }}
-              onUploadError={(error: Error) => {
-                console.error("Upload error:", error);
-              }}
-              content={{
-                button({ isUploading }) {
-                  if (isUploading) {
-                    return (
-                      <div className="text-gray-500 text-sm px-2">
-                        Đang tải lên...
-                      </div>
-                    );
-                  }
-                  return (
-                    <ImageIcon className="p-2 rounded w-full h-full hover:bg-gray-100 text-black " />
-                  );
-                },
-              }}
-            />
+                className={`p-2 rounded ${
+                  editor?.isActive("heading", { level: 1 })
+                    ? "bg-gray-200"
+                    : "hover:bg-gray-100"
+                }`}
+                title="Tiêu đề 1"
+              >
+                <Heading1 className="w-5 h-5" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  editor?.chain().focus().toggleHeading({ level: 2 }).run()
+                }
+                className={`p-2 rounded ${
+                  editor?.isActive("heading", { level: 2 })
+                    ? "bg-gray-200"
+                    : "hover:bg-gray-100"
+                }`}
+                title="Tiêu đề 2"
+              >
+                <Heading2 className="w-5 h-5" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => editor?.chain().focus().toggleBulletList().run()}
+                className={`p-2 rounded ${
+                  editor?.isActive("bulletList")
+                    ? "bg-gray-200"
+                    : "hover:bg-gray-100"
+                }`}
+                title="Danh sách không thứ tự"
+              >
+                <List className="w-5 h-5" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  editor?.chain().focus().toggleOrderedList().run()
+                }
+                className={`p-2 rounded ${
+                  editor?.isActive("orderedList")
+                    ? "bg-gray-200"
+                    : "hover:bg-gray-100"
+                }`}
+                title="Danh sách có thứ tự"
+              >
+                <ListOrdered className="w-5 h-5" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => editor?.chain().focus().toggleBlockquote().run()}
+                className={`p-2 rounded ${
+                  editor?.isActive("blockquote")
+                    ? "bg-gray-200"
+                    : "hover:bg-gray-100"
+                }`}
+                title="Trích dẫn"
+              >
+                <Quote className="w-5 h-5" />
+              </button>
+            </div>
+            <PreviewButton postData={postData} />
           </div>
 
           <EditorContent
             editor={editor}
-            className="min-h-[500px] p-4 bg-white focus:outline-none"
+            className="min-h-[500px] p-4 bg-white focus:outline-none prose whitespace-pre-line"
           />
         </div>
       </div>

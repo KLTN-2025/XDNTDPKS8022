@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import {
   Table,
   TableBody,
@@ -8,7 +8,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,15 +16,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { BookOpen, MoreHorizontalIcon } from "lucide-react";
+import { MoreHorizontalIcon } from "lucide-react";
 import PublishedBlog from "./PublishedBlog";
+import DeleteBlog from "./DeleteBlog";
+import UpdateBlog from "./UpdateBlog";
 
 // Define interfaces based on Prisma schema
 interface Employee {
   user: { firstName: string; lastName: string };
 }
 
-interface BlogPost {
+export interface BlogPost {
   id: string;
   title: string;
   slug: string;
@@ -33,6 +34,9 @@ interface BlogPost {
   publishedAt?: string | null;
   createdAt: string;
   employee: Employee | null;
+  summary: string;
+  content: string;
+  coverImage: string;
 }
 
 interface TableBlogProps {
@@ -40,6 +44,8 @@ interface TableBlogProps {
 }
 
 const TableBlog = ({ posts }: TableBlogProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
     <div className="container mx-auto p-6 rounded-2xl bg-white">
       <h2 className="text-2xl font-bold mb-4">Blog Post Management</h2>
@@ -88,10 +94,17 @@ const TableBlog = ({ posts }: TableBlogProps) => {
                       <DropdownMenuLabel>Thực Hiện</DropdownMenuLabel>
                       <DropdownMenuSeparator />
                       <PublishedBlog id={post.id} published={post.published} />
-                      <DropdownMenuItem>Xóa Bài Viết</DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-blue-600"
+                        onClick={() => setIsOpen(true)}
+                      >
+                        chỉnh sửa bài viết
+                      </DropdownMenuItem>
+                      <DeleteBlog id={post.id} />
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
+                <UpdateBlog data={post} isOpen={isOpen} setIsOpen={setIsOpen} />
               </TableRow>
             ))}
           </TableBody>

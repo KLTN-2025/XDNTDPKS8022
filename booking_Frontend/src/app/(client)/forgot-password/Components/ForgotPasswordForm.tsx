@@ -22,7 +22,6 @@ const ForgotPasswordForm = () => {
       const res = await axios.post(`${URL_API}/api/auth/forgot-password`, {
         email,
       });
-      console.log("ressss", res);
 
       if (res.data) {
         setThanhCong(true);

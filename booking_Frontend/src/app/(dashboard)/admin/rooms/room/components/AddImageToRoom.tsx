@@ -4,7 +4,7 @@ import { ImageDownIcon } from "lucide-react";
 
 import React from "react";
 import toast from "react-hot-toast";
-import Mutate from "../../../../../../../hook/Mutate";
+import Mutate from "@/hook/Mutate";
 
 interface AddImageToRoomProps {
   roomId: string;

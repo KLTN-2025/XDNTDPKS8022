@@ -10,6 +10,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { URL_API } from "@/lib/fetcher";
+import FormGeneratePostAi from "../components/FormGeneratePostAi";
 
 export interface PostData {
   title: string;
@@ -60,7 +61,11 @@ const PostBlog = () => {
 
   return (
     <div className=" mx-auto p-4 bg-white">
-      <h1 className="text-2xl font-bold mb-6">Tạo bài viết mới</h1>
+      <div className="flex justify-between">
+        {" "}
+        <h1 className="text-2xl font-bold mb-6">Tạo bài viết mới</h1>
+        <FormGeneratePostAi setPostData={setPostData} />
+      </div>
 
       <FormBlog
         editor={editor}

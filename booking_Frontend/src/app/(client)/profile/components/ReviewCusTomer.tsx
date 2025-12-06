@@ -7,7 +7,7 @@ import React, { useEffect } from "react";
 import toast from "react-hot-toast";
 import Modal from "react-modal";
 import useSWR from "swr";
-import Mutate from "../../../../../hook/Mutate";
+import Mutate from "../../../../hook/Mutate";
 interface Booking {
   bookingId: string;
 }

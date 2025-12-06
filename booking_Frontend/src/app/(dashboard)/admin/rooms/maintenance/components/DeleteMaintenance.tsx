@@ -10,12 +10,12 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import Mutate from "@/hook/Mutate";
 import axiosInstance from "@/lib/axios";
 import axios from "axios";
 import { Trash2 } from "lucide-react";
 import React from "react";
 import toast from "react-hot-toast";
-import { mutate } from "swr";
 
 const DeleteMaintenance = ({ id }: { id: string }) => {
   const handleDelete = async () => {
@@ -25,7 +25,7 @@ const DeleteMaintenance = ({ id }: { id: string }) => {
       if (!res.data) {
         throw new Error("Failed to delete maintenance");
       }
-      mutate(`${process.env.NEXT_PUBLIC_URL_API}/api/maintenance`);
+      Mutate(`${process.env.NEXT_PUBLIC_URL_API}/api/maintenance`);
       toast.success(" hủy bảo trì thành công!");
     } catch (error: any) {
       console.error("Error deleting maintenance:", error.response.data.message);

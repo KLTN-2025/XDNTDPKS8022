@@ -59,7 +59,7 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
         } catch (err) {
           console.error("Refresh token thất bại:", err);
           localStorage.removeItem("token");
-          router.push("/login"); // redirect về login nếu refresh thất bại
+          router.push("/signIn"); // redirect về login nếu refresh thất bại
           return;
         }
       }

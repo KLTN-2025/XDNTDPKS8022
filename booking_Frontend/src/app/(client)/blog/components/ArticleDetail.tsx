@@ -4,8 +4,9 @@ import useSWR from "swr";
 import { formatDate } from "@/lib/formatDate";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Clock, Calendar } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { ArrowLeft, Clock, Calendar, ChevronRight } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import MarkDown from "@/hook/MarkDown";
 
 interface Props {
   slug: string;
@@ -25,6 +26,8 @@ interface Article {
 const ArticleDetail = ({ slug }: Props) => {
   const router = useRouter();
   const { data: article, isLoading } = useSWR<Article>(`/api/blog/${slug}`);
+  const pathname = usePathname(); //
+  const firstSegment = pathname.split("/")[1];
 
   if (isLoading) {
     return (
@@ -39,7 +42,7 @@ const ArticleDetail = ({ slug }: Props) => {
 
   if (!article) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="  flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
             Bài viết không tồn tại
@@ -56,27 +59,19 @@ const ArticleDetail = ({ slug }: Props) => {
     );
   }
 
-  const createMarkup = () => {
-    return { __html: article.content };
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header với nút quay lại */}
-      <div className="bg-white shadow-sm sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <Button
-            variant="ghost"
+    <div className="overflow-auto max-h-screen">
+      <article className=" mx-auto px-4 lg:px-10 py-4 ">
+        <div className="text-base md:text-xl text-gray-700 font- gap-2 cursor-pointer my-4 md:my-8 flex items-center ">
+          <p
+            className="hover:underline ml-4"
             onClick={() => router.push("/blog")}
-            className="hover:bg-gray-100"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Quay lại Blog
-          </Button>
+            {firstSegment}
+          </p>
+          <ChevronRight className="w-7 h-7" />
+          <p className="truncate ">{article.title}</p>
         </div>
-      </div>
-
-      <article className="max-w-4xl mx-auto px-4 py-8">
         {/* Metadata */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-4">
@@ -124,10 +119,7 @@ const ArticleDetail = ({ slug }: Props) => {
 
         {/* Nội dung bài viết */}
         <div className="bg-white rounded-2xl p-8 shadow-sm">
-          <div
-            className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-p:leading-relaxed prose-a:text-blue-600 prose-strong:text-gray-900 prose-code:bg-gray-100 prose-code:px-2 prose-code:py-1 prose-code:rounded"
-            dangerouslySetInnerHTML={createMarkup()}
-          />
+          <MarkDown>{article.content}</MarkDown>
         </div>
 
         {/* Call to action */}
@@ -142,14 +134,16 @@ const ArticleDetail = ({ slug }: Props) => {
             <Button
               variant="secondary"
               className="bg-white text-blue-600 hover:bg-blue-50"
+              onClick={() => {
+                const url = window.location.href; // Link bài viết
+                window.open(
+                  `https://www.facebook.com/sharer/sharer.php?u=${url}`,
+                  "_blank",
+                  "width=600,height=400"
+                );
+              }}
             >
-              Chia Sẻ Bài Viết
-            </Button>
-            <Button
-              variant="outline"
-              className="border-white text-white hover:bg-white hover:text-blue-600 bg-transparent"
-            >
-              Đăng Ký Nhận Tin
+              Chia Sẻ Lên Facebook
             </Button>
           </div>
         </div>

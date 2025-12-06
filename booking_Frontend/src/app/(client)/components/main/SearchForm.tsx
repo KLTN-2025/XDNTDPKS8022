@@ -53,7 +53,6 @@ const SearchForm = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchParams.checkInDate || !searchParams.checkOutDate) {
-      console.log("Thiếu ngày check-in hoặc check-out");
       toast.error(
         "Vui lòng chọn đầy đủ ngày nhận và ngày trả phòng trước khi tìm!"
       );
@@ -71,7 +70,6 @@ const SearchForm = ({
         toast.error(`Hiện Tại Phòng Chúng Tôi Chưa có`);
       }
     } catch (error) {
-      console.log(error);
       toast.error("Có lỗi xảy ra khi tìm phòng");
     } finally {
       setLoading(false);
@@ -80,16 +78,16 @@ const SearchForm = ({
 
   return (
     <div
-      className={`max-w-4xl mx-auto my-8  bg-white rounded-lg shadow-md transition-all duration-300 
+      className={` max-w-4xl mx-auto my-8  rounded-lg shadow-md transition-all duration-300 
         ${
           isSticky
             ? "fixed -top-8 left-0 p-2 right-0 z-40 max-w-full  shadow-lg"
-            : "p-6"
+            : "p-15"
         }
       `}
     >
       <form
-        className={`flex flex-col md:grid ${
+        className={`relative flex max-w-4xl mx-4 md:mx-auto flex-col md:grid ${
           isSticky ? "md:grid-cols-5" : "md:grid-cols-4"
         } lg:grid-cols-${isSticky ? "5" : "4"} gap-4`}
         onSubmit={handleSubmit}
@@ -110,7 +108,7 @@ const SearchForm = ({
             value={searchParams.checkInDate}
             onChange={handleChange}
             required
-            className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 bg-white focus:ring-blue-500"
             min={new Date().toISOString().split("T")[0]}
           />
         </div>
@@ -133,7 +131,7 @@ const SearchForm = ({
             disabled={!searchParams.checkInDate}
             min={searchParams.checkInDate}
             required
-            className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 bg-white focus:ring-blue-500"
           />
         </div>
 
@@ -151,7 +149,7 @@ const SearchForm = ({
             name="customer"
             value={searchParams.customer}
             onChange={handleChange}
-            className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 bg-white focus:ring-blue-500"
           >
             {[...Array(6)].map((_, i) => (
               <option key={i + 1} value={i + 1}>
@@ -175,7 +173,7 @@ const SearchForm = ({
             name="roomType"
             value={searchParams.roomType}
             onChange={handleChange}
-            className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 bg-white focus:ring-blue-500"
           >
             <option value="">Tất cả</option>
             {roomType?.roomType?.map((item: IRoomType) => (
@@ -192,14 +190,14 @@ const SearchForm = ({
               type="submit"
               className="bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-md transition duration-200"
             >
-              Tìm phòng trống
+              Tìm phòng
             </button>
           </div>
         ) : (
-          <div className="col-span-full w-full ">
+          <div className=" lg:absolute col-span-full lg:col-span-1 top-25  lg:left-1/2 transform lg:-translate-x-1/2 lg:translate-y-1/2 ">
             <button
               type="submit"
-              className="bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-md transition duration-200 w-full"
+              className="bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 lg:px-20 rounded-md transition duration-200 w-full"
             >
               Tìm phòng trống
             </button>

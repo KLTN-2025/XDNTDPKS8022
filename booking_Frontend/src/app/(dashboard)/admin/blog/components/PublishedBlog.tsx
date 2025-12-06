@@ -1,9 +1,9 @@
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import Mutate from "@/hook/Mutate";
 import { URL_API } from "@/lib/fetcher";
 import axios from "axios";
 import React from "react";
 import toast from "react-hot-toast";
-import { mutate } from "swr";
 
 interface IPublishedBlog {
   id: string;
@@ -15,10 +15,10 @@ const PublishedBlog = ({ id, published }: IPublishedBlog) => {
       const res = await axios.put(`${URL_API}/api/blog/${id}`);
       if (res.data) {
         toast.success("xuất Bản Thành Công");
-        mutate(`${URL_API}/api/blog/employee`);
+        Mutate(`${URL_API}/api/blog/employee`);
       }
     } catch (error: any) {
-      toast.error(error.reponse.data.message);
+      toast.error(error?.reponse?.data.message);
     }
   };
   return (

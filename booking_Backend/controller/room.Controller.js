@@ -4,6 +4,7 @@ import {
 } from "../schemas/RoomtypeSchema.js";
 import {
   addRoomImageService,
+  CalculatePriceRoomService,
   createRoomService,
   deleteImageToRoomService,
   deleteRoomService,
@@ -42,7 +43,6 @@ export async function getAllRoom(req, res) {
       status,
       roomType,
       search,
-
       page ? parseInt(page) : 1,
       limit ? parseInt(limit) : 5
     );
@@ -110,7 +110,6 @@ export async function getRoomCustomer(req, res) {
       customer,
       roomType
     );
-    console.log("thong tin : " + checkIn, checkOut, customer, roomType);
     return res.status(200).json(roomCustomer);
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -147,5 +146,33 @@ export async function getBookedDates(req, res) {
     return res.status(200).json(bookedDates);
   } catch (error) {
     return res.status(500).json({ message: error.message });
+  }
+}
+
+export async function calculateRoomPrice(req, res) {
+  try {
+    const { bookingStart, bookingEnd, roomId } = req.query;
+
+    if (!roomId) {
+      return res.status(400).json({ success: false, message: "Thiếu roomId" });
+    }
+
+    const result = await CalculatePriceRoomService(
+      bookingStart,
+      bookingEnd,
+      roomId
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Tính giá phòng thành công",
+      data: result,
+    });
+  } catch (error) {
+    console.error("❌ Lỗi tính giá phòng:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Lỗi máy chủ khi tính giá phòng",
+    });
   }
 }

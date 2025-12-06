@@ -6,7 +6,7 @@ import Modal from "react-modal";
 import axios from "axios";
 import { URL_API } from "@/lib/fetcher";
 import toast from "react-hot-toast";
-import Mutate from "../../../../../../hook/Mutate";
+import Mutate from "../../../../../hook/Mutate";
 
 interface IUpdateDC {
   discounts: IDiscount;

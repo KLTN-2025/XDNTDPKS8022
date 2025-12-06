@@ -1,6 +1,5 @@
 "use client";
-import { fetcher } from "@/lib/fetcher";
-import React, { use, useEffect } from "react";
+import React, { use, useEffect, useState } from "react";
 import useSWR from "swr";
 
 import "swiper/css";
@@ -11,6 +10,8 @@ import "swiper/css/effect-fade";
 import FormBooking from "../../components/FormBooking";
 import DetailRooms from "../../components/DetailRooms";
 import RoomRelative from "../../components/RoomRelative";
+import { ShowCurrentPrice } from "@/lib/showCurrentPrice";
+import { useBookingStore } from "@/app/(dashboard)/context/useBookingForm";
 
 export interface RoomData {
   room: {
@@ -18,11 +19,13 @@ export interface RoomData {
     roomNumber: string;
     floor: number;
     status: RoomStatus;
+    originalPrice: number;
+    currentPrice: number;
+    notes: string;
     images: Array<{ imageUrl: string }>;
     roomType: {
       name: string;
       description: string;
-      basePrice: string;
       maxOccupancy: number;
       amenities: Array<{ amenity: { name: string } }>;
     };
@@ -35,61 +38,42 @@ enum RoomStatus {
   MAINTENANCE = "MAINTENANCE",
 }
 
-interface FormData {
-  checkInDate: Date | null;
-  checkOutDate: Date | null;
-  totalGuests: number;
-  bookingSource: string;
-  specialRequests: string;
-  totalAmount: number;
-  discountId: number | null;
-  pricePerNight: number;
-  roomId: string;
-}
 export default function Page({
   params,
 }: {
   params: Promise<{ id: string; roomId: string }>;
 }) {
   const { roomId, id } = use(params);
-
+  const { formData, setFormData } = useBookingStore();
   const { data, isLoading } = useSWR<RoomData>(
     `${process.env.NEXT_PUBLIC_URL_API}/api/room/${roomId}`
   );
 
-  useEffect(() => {
-    if (data?.room.roomType.basePrice) {
-      setFormData((prev) => ({
-        ...prev,
-        pricePerNight: Number(data.room.roomType.basePrice),
-      }));
-    }
-  }, [data]);
-
-  const [formData, setFormData] = React.useState<FormData>({
-    checkInDate: null,
-    checkOutDate: null,
-    totalGuests: 1,
-    specialRequests: "",
-    bookingSource: "WEBSITE",
-    totalAmount: 0,
-    discountId: null,
-    pricePerNight: 0,
-    roomId: roomId,
+  const [seasonPrice, setSeasonPrice] = useState({
+    total: 0,
+    currentPrice: 0,
+    originalPrice: 0,
+    displayPrice: 0,
   });
 
   useEffect(() => {
-    if (formData.checkInDate && formData.checkOutDate) {
-      const checkIn = new Date(formData.checkInDate);
-      const checkOut = new Date(formData.checkOutDate);
-      const diffTime = Math.abs(checkOut.getTime() - checkIn.getTime());
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      setFormData((prev) => ({
-        ...prev,
-        totalAmount: diffDays * Number(prev.pricePerNight),
-      }));
+    async function fetchPrice() {
+      const price = await ShowCurrentPrice({
+        bookingStart: formData.checkInDate,
+        bookingEnd: formData.checkOutDate,
+        roomId: roomId,
+      });
+      setSeasonPrice(price);
+      setFormData({
+        pricePerNight: Number(price.displayPrice || 0),
+        totalAmount: Number(price.total || 0),
+        roomId: roomId,
+      });
     }
-  }, [formData.checkInDate, formData.checkOutDate, formData.pricePerNight]);
+    if (roomId) {
+      fetchPrice();
+    }
+  }, [formData.checkInDate, formData.checkOutDate, formData.roomId, data]);
 
   const handleFormChange = (
     e: React.ChangeEvent<
@@ -97,7 +81,7 @@ export default function Page({
     >
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData({ [name]: value });
   };
 
   if (isLoading)
@@ -125,15 +109,14 @@ export default function Page({
           {" "}
           <div className="lg:col-span-2">
             {" "}
-            <DetailRooms room={room} />
+            <DetailRooms room={room} seasonPrice={seasonPrice} />
           </div>
           {/* Booking Form */}
           <div className="lg:col-span-1">
             <FormBooking
               room={room}
               handleFormChange={handleFormChange}
-              formData={formData}
-              setFormData={setFormData}
+              seasonPrice={seasonPrice}
             />
           </div>
         </div>

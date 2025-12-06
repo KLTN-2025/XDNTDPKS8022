@@ -66,20 +66,18 @@ export async function disableUser(req, res) {
 
 export async function updateEmployee(req, res) {
   const { id } = req.params;
-  const { firstName, lastName, phone, department, position } = req.body;
-  if (!hasUserPermission(req.user, "USER_UPDATE")) {
-    return res
-      .status(403)
-      .json({ message: "Bạn không có quyền cập nhật thông tin nhân viên" });
-  }
+  const { firstName, lastName, phone } = req.body;
+  // if (!hasUserPermission(req.user, "USER_UPDATE")) {
+  //   return res
+  //     .status(403)
+  //     .json({ message: "Bạn không có quyền cập nhật thông tin nhân viên" });
+  // }
 
   try {
     const updatedEmployee = await updateEmployeeService(id, {
       firstName,
       lastName,
       phone,
-      department,
-      position,
     });
     return res
       .status(200)

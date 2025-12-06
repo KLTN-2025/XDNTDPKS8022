@@ -1,3 +1,4 @@
+import NotFoundError from "../errors/not-found.error.js";
 import { prisma } from "../lib/client.js";
 
 export async function getBlogRepo() {
@@ -64,7 +65,6 @@ export async function createBlogRepo({
       .trim() // Xóa khoảng trắng đầu/cuối
       .replace(/\s+/g, "-"); // Thay khoảng trắng bằng dấu -
   }
-  console.log();
 
   const createBlog = await prisma.blogPost.create({
     data: {
@@ -79,12 +79,19 @@ export async function createBlogRepo({
   return createBlog;
 }
 
-export async function publishedBlogRepo(id) {
-  const findBlog = await prisma.blogPost.findUnique({
+export async function findBlogUnique(id) {
+  return await prisma.blogPost.findUnique({
     where: {
       id,
     },
   });
+}
+
+export async function publishedBlogRepo(id) {
+  const findBlog = findBlogUnique(id);
+  if (!findBlog) {
+    throw new NotFoundError("not found id");
+  }
   let newpublished = !findBlog.published;
 
   return await prisma.blogPost.update({
@@ -95,5 +102,24 @@ export async function publishedBlogRepo(id) {
       published: newpublished,
       publishedAt: newpublished ? new Date() : null,
     },
+  });
+}
+
+export async function deleteBlogRepo(id) {
+  const findBlog = findBlogUnique(id);
+  if (!findBlog) {
+    throw new NotFoundError("not found id");
+  }
+  return await prisma.blogPost.delete({
+    where: { id },
+  });
+}
+
+export async function updateBlogRepo(id, data) {
+  return await prisma.blogPost.update({
+    where: {
+      id,
+    },
+    data,
   });
 }

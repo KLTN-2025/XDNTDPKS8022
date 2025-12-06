@@ -3,14 +3,17 @@ import { formatPrice } from "@/lib/formatPrice";
 import Image from "next/image";
 import Link from "next/link";
 import { Users, Star, ArrowRight } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ShowCurrentPrice } from "@/lib/showCurrentPrice";
 
 interface Iroom {
   room: {
     id: string;
     roomTypeId: string;
+    originalPrice: number;
     roomType: {
       maxOccupancy: number;
-      basePrice: string;
+
       name: string;
     };
     images: { imageUrl: string }[];
@@ -18,14 +21,25 @@ interface Iroom {
 }
 
 const RoomCard = ({ room }: Iroom) => {
+  const [price, setPrice] = useState(null);
+  useEffect(() => {
+    async function fetchPrice() {
+      const res = await ShowCurrentPrice({
+        roomId: room.id,
+      });
+      setPrice(res.displayPrice);
+    }
+    fetchPrice();
+  }, [room.id]);
+
   return (
     <div className="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100">
-      <div className="relative h-32 bg-gradient-to-br from-blue-50 to-indigo-100 overflow-hidden">
+      <div className="relative h-40 bg-gradient-to-br from-blue-50 to-indigo-100 overflow-hidden">
         <Image
           src={room.images[0].imageUrl || "/images/room-placeholder.jpg"}
           alt={room.roomType.name}
-          width={400}
-          height={300}
+          width={500}
+          height={500}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
         />
         {/* Gradient overlay */}
@@ -53,12 +67,12 @@ const RoomCard = ({ room }: Iroom) => {
           </div>
         </div>
 
-        <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+        <div className="mb-6 py-2 px-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
           <div className="flex items-center justify-between">
             <span className="text-gray-700 font-medium">Giá từ:</span>
             <div className="text-right">
-              <span className="text-2xl font-bold text-blue-600 block">
-                {formatPrice(Number(room.roomType.basePrice))}
+              <span className="text-xl font-bold text-blue-600 block">
+                {formatPrice(Number(price))}
               </span>
               <span className="text-sm text-gray-500">VND/đêm</span>
             </div>
@@ -67,7 +81,7 @@ const RoomCard = ({ room }: Iroom) => {
 
         <Link
           href={`/rooms/${room.roomTypeId}/${room.id}`}
-          className="group/btn relative block w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-center font-semibold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl"
+          className="group/btn relative block w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-center font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl"
         >
           <span className="flex items-center justify-center gap-2">
             Đặt phòng ngay

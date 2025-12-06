@@ -9,14 +9,19 @@ import { URL_API } from "@/lib/fetcher";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import Image from "next/image";
+import { useUserStore } from "@/hook/useUserStore";
+import { useRouter } from "next/navigation";
 
 export default function SignInForm() {
+  const { login, user } = useUserStore();
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     remember: false,
   });
   const [message, setMessage] = useState("");
+  const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -46,15 +51,13 @@ export default function SignInForm() {
         localStorage.setItem("token", token);
 
         const decoded: any = jwtDecode(token);
-        if (
-          decoded.userType === "EMPLOYEE" ||
-          decoded.userType === "ADMIN" ||
-          decoded.role !== null
-        ) {
-          document.location.href = "/admin";
-        } else {
-          document.location.href = "/";
-        }
+        login({
+          id: decoded.id,
+          lastName: decoded.lastName,
+          userType: decoded.userType,
+          token: res.data.accessToken,
+          role: res.data.role,
+        });
       }
     } catch (error: any) {
       setMessage(error.response?.data?.message || "Đăng nhập không thành công");
@@ -66,6 +69,20 @@ export default function SignInForm() {
       document.location.href = "/";
     }
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+
+    if (
+      user.userType === "EMPLOYEE" ||
+      user.userType === "ADMIN" ||
+      (user.role && user.role !== "")
+    ) {
+      router.push("/admin");
+    } else {
+      router.push("/");
+    }
+  }, [user, router]);
 
   useEffect(() => {
     if (message) {
@@ -124,7 +141,7 @@ export default function SignInForm() {
             <div className="animate-slide-in-left">
               <Label
                 htmlFor="email"
-                className="text-base text-gray-700 font-semibold block mb-2 flex items-center gap-2"
+                className="text-base text-gray-700 font-semibold  mb-2 flex items-center gap-2"
               >
                 <svg
                   className="w-5 h-5 text-blue-600"

@@ -4,15 +4,18 @@ import {
   UserUpdateSchema,
   CreateCustomer,
   changePasswordSchema,
+  GuestSchema,
 } from "../schemas/UserSchema.js";
 import signUp, {
   changePasswordService,
   createCustomerService,
+  createGuestService,
   disableUserService,
   forgotPasswordService,
   getAllCustomerService,
   getUser,
   login,
+  refreshTokenService,
   resetPasswordService,
   updateUser,
 } from "../services/user.service.js";
@@ -39,25 +42,32 @@ export default async function signUpController(req, res) {
 export async function loginController(req, res) {
   try {
     const { email, password, remember } = req.body;
-    console.log("LOGIN BODY", req.body);
     if (!email || !password) {
       return res
         .status(400)
         .json({ message: "Vui lòng điền đầy đủ thông tin!" });
     }
-    const { accessToken } = await login({ email, password, remember });
+    const { accessToken, refreshToken } = await login({
+      email,
+      password,
+      remember,
+    });
 
     if (!accessToken) {
       return res.status(401).json({ message: "Đăng nhập không thành công" });
     }
-    const maxAgeChange =
-      remember === true ? 3 * 60 * 60 * 1000 : 60 * 60 * 1000;
-
+    const maxAgeChange = remember ? 20 * 60 * 1000 : 15 * 60 * 1000;
     res.cookie("token", accessToken, {
       httpOnly: true,
       secure: true,
-      sameSite: "none", // ⚡ Nếu FE khác domain
-      maxAge: maxAgeChange, // ví dụ 1 ngày
+      sameSite: "none",
+      maxAge: maxAgeChange,
+    });
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     return res
@@ -135,7 +145,6 @@ export async function changePassword(req, res) {
       return res.status(400).json({ message: parsed.error.issues[0].message });
     }
     const { currentPassword, newPassword } = parsed.data;
-    console.log(currentPassword, newPassword, userId);
 
     const result = await changePasswordService(
       userId,
@@ -183,6 +192,46 @@ export async function disableUser(req, res) {
       user: updatedUser,
     });
   } catch (error) {
-    return res.status(404).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
+  }
+}
+
+export async function createGuest(req, res) {
+  try {
+    // const { fullName, email, phone, idNumber, checkInDate, checkOutDate } =
+    //   req.body;
+
+    const parsed = GuestSchema.safeParse(req.body);
+
+    if (!parsed.success) {
+      return res.status(400).json({ message: parsed.error.issues[0].message });
+    }
+    const newgest = await createGuestService(parsed.data);
+    return res
+      .status(201)
+      .json({ newgest, message: "Tạo khách phụ thành công" });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+}
+
+export async function refreshToken(req, res) {
+  try {
+    const refreshToken = req.cookies?.refreshToken;
+    const newAccessToken = await refreshTokenService(refreshToken);
+
+    res.cookie("token", newAccessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 20 * 60 * 1000,
+    });
+
+    return res.status(200).json({
+      message: "Access token mới đã được cấp",
+      accessToken: newAccessToken,
+    });
+  } catch (error) {
+    return res.status(401).json({ message: error.message });
   }
 }

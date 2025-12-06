@@ -17,21 +17,24 @@ import {
 
 export async function createRoomTypeController(req, res) {
   const parsed = RoomTypeSchema.safeParse(req.body);
+
   if (!parsed.success) {
-    res.status(400).json({ message: parsed.error.issues[0].message });
+    return res.status(400).json({ message: parsed.error.issues[0].message });
   }
   try {
     const roomType = await createRoomTypeService(parsed.data);
-    res.status(200).json({ roomType, message: "Thêm Loại Phòng Thành Công" });
+    return res
+      .status(200)
+      .json({ roomType, message: "Thêm Loại Phòng Thành Công" });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
 }
 
 export async function getAllRoomTypes(req, res) {
-  const { search, page, limit, order } = req.query;
+  const { search, page, limit } = req.query;
   try {
-    const roomTypes = await getRoomTypeService(search, page, limit, order);
+    const roomTypes = await getRoomTypeService(search, page, limit);
     return res.status(200).json(roomTypes);
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -51,7 +54,7 @@ export async function getRoomTypesById(req, res) {
 export async function updateRoomType(req, res) {
   const { id } = req.params;
   const parsed = RoomUpdateTypeSchema.safeParse(req.body);
-  console.log(req.body);
+  console.log(parsed);
 
   if (!parsed.success) {
     return res.status(400).json({ message: parsed.error.issues[0].message });

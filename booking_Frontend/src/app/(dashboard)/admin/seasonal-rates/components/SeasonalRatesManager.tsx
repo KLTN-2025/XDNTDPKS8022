@@ -42,7 +42,7 @@ export function SeasonalRatesManager({
             <TableHeader>
               <TableRow className="bg-muted/50">
                 <TableHead className="font-semibold">Tên Mùa</TableHead>
-                <TableHead className="font-semibold">So Phòng</TableHead>
+                <TableHead className="font-semibold">Số Phòng</TableHead>
                 <TableHead className="font-semibold">Ngày Bắt Đầu</TableHead>
                 <TableHead className="font-semibold">Ngày Kết Thúc</TableHead>
                 <TableHead className="font-semibold">Hệ Số</TableHead>

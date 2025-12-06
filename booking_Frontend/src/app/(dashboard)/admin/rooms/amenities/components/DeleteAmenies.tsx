@@ -7,7 +7,7 @@ import toast from "react-hot-toast";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import { mutate } from "swr";
-import Mutate from "../../../../../../../hook/Mutate";
+import Mutate from "@/hook/Mutate";
 
 const DeleteAmenies = ({ id }: { id: string }) => {
   const MySwal = withReactContent(Swal);

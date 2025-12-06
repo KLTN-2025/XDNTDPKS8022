@@ -1,72 +1,93 @@
 "use client";
-import ReactMarkdown from "react-markdown";
 import { URL_API } from "@/lib/fetcher";
 import axios from "axios";
 import { useState, useRef, useEffect } from "react";
 import { PaperAirplaneIcon } from "@heroicons/react/24/outline";
-import { BotMessageSquare, Maximize, X } from "lucide-react";
-import Link from "next/link";
+import { Maximize, X } from "lucide-react";
 import Image from "next/image";
+import MarkDown from "@/hook/MarkDown";
+import axiosInstance from "@/lib/axios";
+import { useChatSession } from "@/hook/useChatSession";
+
+interface ChatMessage {
+  lc: number; // LangChain message index
+  type: string; // "constructor"
+  id: string[]; // ["langchain_core", "messages", "HumanMessage"]
+  kwargs: {
+    content: string; // Nội dung tin nhắn
+  };
+}
 
 export default function ChatBoxAL() {
-  const [messages, setMessages] = useState<
-    {
-      role: string;
-      content: string;
-    }[]
-  >([]);
+  const [history, setHistory] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [expand, setExpand] = useState(false);
+  const sessionId = useChatSession();
+
   // Auto-scroll to bottom when mssages
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [history]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const res = await axiosInstance.post("/api/chatai/", {
+          sessionId,
+          message: "",
+        });
+        if (res.data?.history) {
+          setHistory(res.data.history);
+        }
+      } catch (error) {
+        console.error("Lỗi khi lấy lịch sử chat:", error);
+      }
+    };
+
+    if (isOpen) {
+      fetchHistory();
+    }
+  }, [isOpen]);
+
   async function sendMessage(e?: React.FormEvent) {
     e?.preventDefault();
     if (!input.trim() || isLoading) return;
-
-    const newMessages = [
-      ...messages,
-      {
-        role: "user",
-        content: input,
-      },
-    ];
-    setMessages(newMessages);
+    const userMessage = input.trim();
     setInput("");
     setIsLoading(true);
+
+    const optimisticMessage: ChatMessage = {
+      lc: Date.now(),
+      type: "constructor",
+      id: ["langchain_core", "messages", "HumanMessage"],
+      kwargs: {
+        content: userMessage,
+      },
+    };
+
+    setHistory((prev) => [...prev, optimisticMessage]);
 
     try {
       const res = await axios.post(`${URL_API}/api/chatai`, {
         message: input,
+        sessionId,
       });
 
       if (res.data) {
-        const data = res.data.data;
-        setMessages([
-          ...newMessages,
-          {
-            role: "system",
-            content: data,
-          },
-        ]);
+        setHistory(res.data.history);
       }
     } catch (error) {
-      setMessages([
-        ...newMessages,
-        {
-          role: "system",
-          content: "xảy ra lỗi, vui lòng thử lại sau.",
-        },
-      ]);
+      console.error("Lỗi khi gửi tin nhắn:", error);
+      setHistory((prev) =>
+        prev.filter((msg) => msg.lc !== optimisticMessage.lc)
+      );
     } finally {
       setIsLoading(false);
     }
@@ -82,12 +103,26 @@ export default function ChatBoxAL() {
     <>
       {/* Floating action button - shows on mobile and desktop */}
       {!isOpen && (
-        <div
-          className="fixed rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 hover:cursor-pointer w-fit z-50 bottom-14  right-5 md:right-4 border-none outline-none"
-          onClick={() => setIsOpen(!isOpen)}
-          title="Chat Bot Ai"
-        >
-          <BotMessageSquare className="w-6 h-6 md:w-7 md:h-7 animate-bounce-light " />
+        <div className="group fixed bottom-14 right-5 z-50 w-full">
+          {/* Nút chatbot */}
+          <div
+            className="fixed rounded-full bg-gradient-to-r animate-bounce-light from-blue-500 to-blue-600 text-white p-1 w-fit cursor-pointer border-none outline-none bottom-14 right-5"
+            onClick={() => setIsOpen(!isOpen)}
+            title="Hỗ Trợ Bạn Tìm Thông Tin Nhanh Chống Bằng Ai"
+          >
+            <Image
+              src={"/image/iSeeMascoticenter.gif"}
+              alt="anhdaidien"
+              width={50}
+              height={50}
+              className="object-contain rounded-full "
+            />
+          </div>
+
+          {/* Tooltip */}
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white shadow-2xl border-2 px-4 py-2 rounded-2xl absolute -top-28 -right-7">
+            xin chào tôi là lễ tân Ai
+          </div>
         </div>
       )}
 
@@ -118,124 +153,63 @@ export default function ChatBoxAL() {
 
           {/* Messages area */}
           <div className="flex-1 px-5 py-1 mt-4 overflow-y-auto bg-gray-50">
-            {messages.length === 0 ? (
+            {history?.length === 0 ? (
               <div className="flex items-center justify-center h-full text-gray-500 text-center px-4">
                 <p>Bắt đầu cuộc trò chuyện bằng cách nhập tin nhắn bên dưới</p>
               </div>
             ) : (
-              messages.map((m, i) => (
-                <div
-                  key={i}
-                  className={`mb-4 flex items-end ${
-                    m.role === "user" ? "justify-end" : "justify-start"
-                  }`}
-                >
-                  {m.role !== "user" && (
-                    <div className="mr-1 p-1 rounded-full bg-blue-500">
-                      <Image
-                        src={"/image/nhanvien.png"}
-                        alt="anhdaidien"
-                        width={50}
-                        height={50}
-                        className="w-8 h-8 object-contain rounded-full"
-                      />
-                    </div>
-                  )}
+              history?.map((m, i) => {
+                const isUser = m.id.includes("HumanMessage");
+                const isAssistant = m.id.includes("AIMessage");
+                const text = m.kwargs?.content || "";
+                return (
                   <div
-                    className={`max-w-[80%] rounded-lg px-3 ${
-                      m.role === "user"
-                        ? "bg-blue-500 text-white rounded-br-none text-end"
-                        : "bg-gray-200 text-gray-800 rounded-bl-none text-start"
+                    key={i}
+                    className={`mb-4 flex items-end ${
+                      isUser ? "justify-end" : "justify-start"
                     }`}
                   >
-                    <ReactMarkdown
-                      components={{
-                        div: ({ children }) => (
-                          <p className="text-base my-6">{children}</p>
-                        ),
-                        p: ({ children }) => (
-                          <p className="text-lg leading-relaxed my-2 josefin-sans ">
-                            {children}
-                          </p>
-                        ),
-                        strong: ({ children }) => (
-                          <strong className="text-black font-bold">
-                            {children}
-                          </strong>
-                        ),
-                        em: ({ children }) => (
-                          <em className="italic text-orange-500">{children}</em>
-                        ),
-                        a: ({ href, children }) => (
-                          <Link
-                            href={href || "#"}
-                            className="underline text-blue-500 my-5"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            {children}
-                          </Link>
-                        ),
-                        h1: ({ children }) => (
-                          <h1 className="text-2xl font-bold text-gray-900 ">
-                            {children}
-                          </h1>
-                        ),
-                        h2: ({ children }) => (
-                          <h2 className="text-xl font-semibold text-gray-800 mt-4">
-                            {children}
-                          </h2>
-                        ),
-                        h3: ({ children }) => (
-                          <h3 className="text-lg font-semibold text-gray-700 mt-3">
-                            {children}
-                          </h3>
-                        ),
-                        ul: ({ children }) => (
-                          <ul
-                            className="list-disc list-inside ml-4 mt-2"
-                            style={{
-                              listStyleType: "revert-layer", // bullet kiểu chấm
-                              paddingLeft: "20px",
-                              marginTop: "8px",
-                            }}
-                          >
-                            {children}
-                          </ul>
-                        ),
-                        li: ({ children }) => (
-                          <li className="mb-1 josefin-sans">{children}</li>
-                        ),
-                        code: ({ children }) => (
-                          <code className="bg-gray-100 text-sm text-gray-800 px-1 py-0.5 rounded">
-                            {children}
-                          </code>
-                        ),
-                      }}
+                    {isAssistant && (
+                      <div className="mr-1 p-1 rounded-full bg-blue-500">
+                        <Image
+                          src={"/image/chatbot-chat.avif"}
+                          alt="anhdaidien"
+                          width={50}
+                          height={50}
+                          className="w-8 h-8 object-contain rounded-full"
+                        />
+                      </div>
+                    )}
+                    <div
+                      className={`max-w-[80%] rounded-lg px-3 ${
+                        isUser
+                          ? "bg-blue-500 text-white rounded-br-none text-end"
+                          : "bg-gray-200 text-gray-800 rounded-bl-none text-start"
+                      }`}
                     >
-                      {m.content}
-                    </ReactMarkdown>
-                  </div>
-                  {m.role === "user" && (
-                    <div className="ml-1 p-1 rounded-full bg-blue-500">
-                      <Image
-                        src={"/image/anhdaidien.jpg"}
-                        alt="anhdaidien"
-                        width={50}
-                        height={50}
-                        className="w-8 h-8 object-contain rounded-full"
-                      />
+                      <MarkDown>{text}</MarkDown>
                     </div>
-                  )}
-                </div>
-              ))
+                    {isUser && (
+                      <div className="ml-1 p-1 rounded-full bg-blue-500">
+                        <Image
+                          src={"/image/anhdaidien.jpg"}
+                          alt="anhdaidien"
+                          width={50}
+                          height={50}
+                          className="w-8 h-8 object-contain rounded-full"
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })
             )}
             <div ref={messagesEndRef} />
             {isLoading && (
               <div className="flex justify-start  mb-4">
                 <div className="mr-1 p-1 rounded-full bg-blue-500">
                   <Image
-                    src={"/image/nhanvien.png"}
+                    src={"/image/chatbot-chat.avif"}
                     alt="anhdaidien"
                     width={50}
                     height={50}

@@ -2,7 +2,6 @@ import { auditLogService } from "../services/auditlog.service.js";
 
 export async function getAuditLog(req, res) {
   const { day, month, year } = req.query;
-  console.log("day", day, "month :", month, "year:", year);
 
   try {
     const parsedParams = {

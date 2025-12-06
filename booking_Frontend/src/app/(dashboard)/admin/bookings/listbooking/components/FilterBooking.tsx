@@ -1,5 +1,4 @@
 import SearchForm from "@/app/(dashboard)/components/searchPage/SearchForm";
-import { Calendar, Search } from "lucide-react";
 import React from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -27,12 +26,6 @@ const FilterBooking = ({
       <div className="flex flex-col md:flex-row md:justify-around gap-4 w-full">
         {/* Check-in Date */}
         <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-primary" />
-            <label className="text-sm font-medium text-foreground font-serif">
-              Ngày nhận phòng
-            </label>
-          </div>
           <div className="relative group">
             <DatePicker
               placeholderText="Chọn ngày nhận phòng"
@@ -54,12 +47,6 @@ const FilterBooking = ({
         </div>
         {/* Check-out Date */}
         <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-accent" />
-            <label className="text-sm font-medium text-foreground font-serif">
-              Ngày trả phòng
-            </label>
-          </div>
           <div className="relative group">
             <DatePicker
               placeholderText="Chọn ngày trả phòng"
@@ -80,12 +67,6 @@ const FilterBooking = ({
           </div>
         </div>
         <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Search className="w-5 h-5 text-primary" />
-            <label className="text-sm font-medium text-foreground font-serif">
-              Tìm Kiếm
-            </label>
-          </div>
           <SearchForm
             placeholder="Nhập CCCD vào đây ..."
             search={isNumber}

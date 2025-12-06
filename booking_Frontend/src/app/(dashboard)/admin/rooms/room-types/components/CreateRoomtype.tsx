@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { ImageDownIcon, PlusCircle, X } from "lucide-react";
 import { UploadButton } from "@/utils/uploadthing";
 import toast from "react-hot-toast";
-import Mutate from "../../../../../../../hook/Mutate";
+import Mutate from "@/hook/Mutate";
 
 interface Amenity {
   id: string;
@@ -37,7 +37,6 @@ const CreateRoomtype = () => {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    basePrice: 0,
     maxOccupancy: 0,
     photoUrls: "",
   });
@@ -48,9 +47,13 @@ const CreateRoomtype = () => {
     setFormData((prev) => ({
       ...prev,
       [name]:
-        name === "basePrice" || name === "maxOccupancy" ? Number(value) : value,
+        name === "originalPrice" || name === "maxOccupancy"
+          ? Number(value)
+          : value,
     }));
   };
+
+
 
   const handleCreateRoomType = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,9 +75,7 @@ const CreateRoomtype = () => {
         setImage("");
         setFormData({
           name: "",
-          description: "",
-          basePrice: 0,
-          maxOccupancy: 0,
+          description: "",          maxOccupancy: 0,
           photoUrls: "",
         });
         Mutate(`${process.env.NEXT_PUBLIC_URL_API}/api/roomtype`);
@@ -141,21 +142,6 @@ const CreateRoomtype = () => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="basePrice">
-                      Giá cơ bản <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      id="basePrice"
-                      name="basePrice"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={Number(formData.basePrice) || 0}
-                      onChange={handleChange}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
                     <Label htmlFor="maxOccupancy">
                       Số người tối đa <span className="text-red-500">*</span>
                     </Label>
@@ -206,7 +192,9 @@ const CreateRoomtype = () => {
                       content={{
                         button({ isUploading }) {
                           return isUploading ? (
-                            <div className="text-black">Đang tải lên...</div>
+                            <div className="text-black text-xs">
+                              Đang tải lên...
+                            </div>
                           ) : (
                             <>
                               <ImageDownIcon className="text-black w-8 h-8" />

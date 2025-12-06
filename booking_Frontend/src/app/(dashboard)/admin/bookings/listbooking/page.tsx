@@ -2,8 +2,9 @@
 import React, { useState } from "react";
 import "react-datepicker/dist/react-datepicker.css";
 import useSWR from "swr";
-import TableListBooking, { IBooking } from "./components/TableListBooking";
+import TableListBooking from "./components/TableListBooking";
 import FilterBooking from "./components/FilterBooking";
+import { IBooking } from "./components/bookingad";
 
 const API_URL = process.env.NEXT_PUBLIC_URL_API;
 

@@ -1,19 +1,35 @@
 "use client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useUserStore } from "@/hook/useUserStore";
 import { URL_API } from "@/lib/fetcher";
-import { getUser } from "@/lib/getUser";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
+import { X } from "lucide-react";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import Modal from "react-modal";
+
 interface ILoginModal {
   isLogin: boolean;
   setIsLogin: (value: boolean) => void;
-  setIsProcessing: (value: boolean) => void;
 }
-const LoginModal = ({ isLogin, setIsLogin, setIsProcessing }: ILoginModal) => {
+
+const generateUUID = (): string => {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
+
+const LoginModal = ({ isLogin, setIsLogin }: ILoginModal) => {
+  const { login } = useUserStore();
+
   const [message, setMessage] = useState("");
   const [formData, setFormData] = useState({
     email: "",
@@ -38,17 +54,34 @@ const LoginModal = ({ isLogin, setIsLogin, setIsProcessing }: ILoginModal) => {
       });
 
       if (res.data && res.data.accessToken) {
-        localStorage.setItem("token", res.data.accessToken);
-        toast.success("đăng Nhập Thành Công");
-        await getUser();
+        const token = res.data.accessToken;
+
+        // decode token để lấy thông tin user
+        const decoded = jwtDecode(token) as {
+          id: string;
+          lastName: string;
+          userType: string;
+          role: string;
+        };
+        localStorage.setItem("token", token);
+        localStorage.setItem("sessionId", decoded.id || generateUUID());
+        login({
+          id: decoded.id,
+          lastName: decoded.lastName,
+          userType: decoded.userType,
+          role: decoded.role,
+          token,
+        });
+        setIsLogin(false);
       }
+      toast.success("Đăng nhập thành công");
     } catch (error: any) {
       setMessage(error.response?.data?.message || "Đăng nhập không thành công");
     } finally {
       setIsLogin(false);
-      setIsProcessing(false);
     }
   };
+
   useEffect(() => {
     if (message) {
       const timeout = setTimeout(() => {
@@ -63,7 +96,7 @@ const LoginModal = ({ isLogin, setIsLogin, setIsProcessing }: ILoginModal) => {
       isOpen={isLogin}
       onRequestClose={() => setIsLogin(false)}
       contentLabel="Payment Confirmation"
-      className="bg-white rounded-lg shadow-lg p-6 w-[90%] max-w-md mx-auto mt-20 outline-none"
+      className="bg-white rounded-lg shadow-lg p-6 w-[90%] max-w-md mx-auto mt-20 outline-none relative"
       overlayClassName="fixed inset-0 bg-black/10 flex justify-center items-start z-50 overflow-auto"
     >
       <div className="flex flex-col gap-4">
@@ -118,19 +151,16 @@ const LoginModal = ({ isLogin, setIsLogin, setIsProcessing }: ILoginModal) => {
             href={"/signUp"}
             className="text-sm text-blue-500 underline hover:text-blue-600 text-end"
           >
-            chua co tai khoan ?
+            chưa có tài khoản ?
           </Link>
         </form>
-        <button
-          onClick={() => {
-            setIsLogin(false);
-            setIsProcessing(false);
-          }}
-          className="mt-2 text-gray-600 hover:text-gray-800"
-        >
-          Đóng
-        </button>
       </div>
+      <X
+        onClick={() => {
+          setIsLogin(false);
+        }}
+        className="hover:text-red-600 cursor-pointer w-7 h-7 absolute top-2 right-2"
+      />
     </Modal>
   );
 };

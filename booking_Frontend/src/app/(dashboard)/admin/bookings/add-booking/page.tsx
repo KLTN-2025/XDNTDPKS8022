@@ -54,6 +54,7 @@ const Page = () => {
   const { data: customerData } = useSWR<UserResponse>(
     `${URL_API}/api/auth/customer?search=${searchIdNumber}&limit=9999&page=1`
   );
+
   useEffect(() => {
     const user = customerData?.customer?.result?.[0];
     if (user && searchIdNumber) {

@@ -9,14 +9,11 @@ const GalleryPage = () => {
   );
 
   return (
-    <section className="my-5 p-4 md:px-8 lg:px-16 bg-gray-50">
+    <section className="my-5 px-4 md:px-10 lg:px-16 bg-gray-50">
       {/* Heading */}
-      <h1 className="text-center text-2xl md:text-3xl font-bold text-yellow-600 mb-10 uppercase tracking-widest">
-        Thư viện ảnh
-      </h1>
 
       {/* Video */}
-      <div className="max-w-7xl mx-auto mb-12 rounded-xl overflow-hidden shadow-lg">
+      <div className=" mb-12 h-screen rounded-xl overflow-hidden shadow-lg">
         <video
           src="/video/2406638-uhd_3840_2160_24fps.mp4"
           loop

@@ -5,7 +5,6 @@ import Image from "next/image";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, EffectFade, Autoplay } from "swiper/modules";
 import { Users, Star, CheckCircle, Clock, Shield } from "lucide-react";
-import ReactMarkdown from "react-markdown";
 
 // Import Swiper styles
 import "swiper/css";
@@ -13,30 +12,37 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import "swiper/css/effect-fade";
 import { formatPrice } from "@/lib/formatPrice";
-import { RoomStatus } from "@/app/(dashboard)/admin/bookings/addbooking/components/AdminBookingForm";
+import MarkDown from "@/hook/MarkDown";
 
 interface DetailRoomsProps {
   room: {
     id: string;
     roomNumber: string;
     floor: number;
-    status: RoomStatus;
+    notes: string;
+    currentPrice: number;
+    originalPrice: number;
     images: Array<{ imageUrl: string }>;
     roomType: {
       name: string;
       description: string;
-      basePrice: string;
       maxOccupancy: number;
       amenities: Array<{ amenity: { name: string } }>;
     };
   };
+  seasonPrice: {
+    total: number;
+    currentPrice: number;
+    originalPrice: number;
+    displayPrice: number;
+  };
 }
 
-const DetailRooms: React.FC<DetailRoomsProps> = ({ room }) => {
+const DetailRooms: React.FC<DetailRoomsProps> = ({ room, seasonPrice }) => {
   return (
     <>
       {/* Main Content */}
-      <div className="space-y-10">
+      <div className="space-y-10 max-h-screen overflow-auto">
         {/* Enhanced Header Section */}
         <div className="relative">
           <div className="flex flex-row justify-between items-start md:items-center border-b pb-8 border-gray-200">
@@ -50,7 +56,7 @@ const DetailRooms: React.FC<DetailRoomsProps> = ({ room }) => {
             </div>
             <div className="text-right flex mt-6">
               <p className="text-2xl lg:text-4xl font-bold text-blue-600 mb-1">
-                {formatPrice(Number(room.roomType.basePrice))}
+                {formatPrice(Number(seasonPrice.displayPrice))}
               </p>
               <span className="text-lg font-normal text-gray-500">/đêm</span>
             </div>
@@ -155,7 +161,7 @@ const DetailRooms: React.FC<DetailRoomsProps> = ({ room }) => {
             <div className="w-1 h-8 bg-blue-600 rounded-full mr-4"></div>
             Giới thiệu
           </h2>
-          <ReactMarkdown>{room.roomType.description}</ReactMarkdown>
+          <MarkDown>{room.notes}</MarkDown>
         </div>
 
         {/* Enhanced Amenities */}
@@ -226,8 +232,6 @@ const DetailRooms: React.FC<DetailRoomsProps> = ({ room }) => {
           </div>
         </div>
       </div>
-
-      {/* Custom Swiper Styles */}
     </>
   );
 };

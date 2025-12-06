@@ -25,14 +25,15 @@ import toast from "react-hot-toast";
 import axiosInstance from "@/lib/axios";
 import { URL_API } from "@/lib/fetcher";
 import axios from "axios";
-import Mutate from "../../../../../../../hook/Mutate";
+import Mutate from "@/hook/Mutate";
+import Invoice from "./Invoice";
+import { IBooking } from "./bookingad";
 interface IUpdateStatus {
-  id: string;
-  status: "PENDING" | "CONFIRMED" | "CANCELLED" | "CHECKED_IN" | "CHECKED_OUT";
+  booking: IBooking;
 }
-const UpdateStatus = ({ id, status }: IUpdateStatus) => {
+const UpdateStatus = ({ booking }: IUpdateStatus) => {
   const handleUpdateStatus = async () => {
-    const res = await axiosInstance.put(`/api/booking/${id}`);
+    const res = await axiosInstance.put(`/api/booking/${booking.id}`);
 
     if (res.data) {
       if (res.data.data.status === "CHECKED_IN") {
@@ -48,13 +49,12 @@ const UpdateStatus = ({ id, status }: IUpdateStatus) => {
   const handleCancelledStatus = async () => {
     try {
       const res = await axios.put(
-        `${URL_API}/api/booking/cancelled/${id}`,
+        `${URL_API}/api/booking/cancelled/${booking.id}`,
         {},
         {
           withCredentials: true,
         }
       );
-      console.log(res.data);
 
       if (res.data) {
         Mutate(`${URL_API}/api/booking`);
@@ -67,9 +67,12 @@ const UpdateStatus = ({ id, status }: IUpdateStatus) => {
 
   const deleteBooking = async () => {
     try {
-      const res = await axios.delete(`${URL_API}/api/booking/employee/${id}`, {
-        withCredentials: true,
-      });
+      const res = await axios.delete(
+        `${URL_API}/api/booking/employee/${booking.id}`,
+        {
+          withCredentials: true,
+        }
+      );
 
       if (res.data) {
         Mutate(`${URL_API}/api/booking?idNumber=`);
@@ -93,19 +96,24 @@ const UpdateStatus = ({ id, status }: IUpdateStatus) => {
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
             <DropdownMenuItem>
+              {" "}
+              <Invoice booking={booking} />
+            </DropdownMenuItem>
+
+            <DropdownMenuItem>
               <button
                 className="text-green-600 hover:text-green-800 mr-2 cursor-pointer"
                 onClick={handleUpdateStatus}
-                disabled={status === "CHECKED_OUT"}
+                disabled={booking.status === "CHECKED_OUT"}
               >
-                {status === "PENDING"
+                {booking.status === "PENDING"
                   ? "Nhận Phòng"
-                  : status === "CHECKED_IN"
+                  : booking.status === "CHECKED_IN"
                   ? "Trả Phòng"
                   : "Hoàn Thành"}
               </button>
             </DropdownMenuItem>
-            {status !== "CHECKED_OUT" && (
+            {booking.status !== "CHECKED_OUT" && (
               <DropdownMenuItem>
                 <button
                   className="text-yellow-600 hover:text-yellow-800"

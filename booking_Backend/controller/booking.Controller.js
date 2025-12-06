@@ -36,6 +36,7 @@ export async function CustomerBooking(req, res) {
     discountId,
     pricePerNight,
     roomId,
+    guestId,
   } = req.body;
 
   try {
@@ -50,6 +51,7 @@ export async function CustomerBooking(req, res) {
       discountId,
       pricePerNight,
       roomId,
+      guestId,
     });
     return res.status(201).json({ message: "Đặt phòng thành công", data });
   } catch (error) {
@@ -60,8 +62,6 @@ export async function CustomerBooking(req, res) {
 export async function getAllBooking(req, res) {
   const { idNumber, status, checkInDate, checkOutDate, totalAmount } =
     req.query;
-
-  console.log("hi", idNumber, status, checkInDate, checkOutDate, totalAmount);
 
   try {
     const bookings = await getAllBookingService(

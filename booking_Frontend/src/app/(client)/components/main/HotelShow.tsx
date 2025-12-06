@@ -69,8 +69,8 @@ const HotelShow = () => {
   const currentTab = tabData[hotel];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
-      <div className="flex flex-col md:flex-row gap-5  justify-center space-x-2 mb-8  md:max-w-4xl mx-auto">
+    <div className=" bg-gradient-to-br from-slate-50 to-slate-100 p-10 mt-8  lg:mt-10">
+      <div className="flex flex-col lg:flex-row gap-5  justify-center space-x-2 mb-8  lg:max-w-6xl mx-auto">
         {(Object.keys(tabData) as TabType[]).map((tabKey) => {
           const tab = tabData[tabKey];
           const isActive = hotel === tabKey;
@@ -110,7 +110,7 @@ const HotelShow = () => {
         })}
       </div>
 
-      <div className="bg-gradient-to-br from-white to-gray-50  max-w-7xl mx-auto rounded-3xl shadow-2xl border border-gray-200/50 overflow-hidden">
+      <div className=" mx-auto rounded-3xl shadow-2xl border border-gray-200/50 overflow-hidden">
         <div
           className={`transition-all duration-500 ${
             isTransitioning
@@ -122,11 +122,11 @@ const HotelShow = () => {
             <div className="flex-1 group">
               <div className="relative overflow-hidden rounded-2xl shadow-2xl">
                 <Image
-                  width={500}
-                  height={400}
+                  width={700}
+                  height={700}
                   src={currentTab.image || "/placeholder.svg"}
                   alt={currentTab.title}
-                  className="w-full h-[400px] object-cover transition-transform duration-700 group-hover:scale-110"
+                  className="w-full md:h-200 object-cover transition-transform duration-700 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 <div
@@ -138,7 +138,7 @@ const HotelShow = () => {
             </div>
 
             <div className="flex-1 flex flex-col justify-center">
-              <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 relative overflow-hidden">
+              <div className="bg-white rounded-2xl shadow-xl py-10 p-2 border border-gray-100 relative overflow-hidden h-full lg:h-150">
                 <div
                   className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${currentTab.gradient}`}
                 ></div>
@@ -153,7 +153,11 @@ const HotelShow = () => {
                   </h2>
                 </div>
                 <div className="prose prose-gray max-w-none">
-                  <p className="text-gray-600 leading-relaxed text-base font-medium">
+                  <p
+                    className="text-gray-600 leading-relaxed text-base font-medium line-clamp-15
+                  "
+                    title={currentTab.description}
+                  >
                     {currentTab.description}
                   </p>
                 </div>
@@ -183,7 +187,7 @@ const HotelShow = () => {
                 <img
                   src={currentTab.image1 || "/placeholder.svg"}
                   alt={currentTab.title}
-                  className="w-full h-[400px] object-cover transition-transform duration-700 group-hover:scale-110"
+                  className="w-full md:h-200 object-cover transition-transform duration-700 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               </div>
@@ -191,9 +195,6 @@ const HotelShow = () => {
           </div>
         </div>
       </div>
-
-      <div className="absolute top-20 left-10 w-20 h-20 bg-gradient-to-br from-amber-200 to-orange-300 rounded-full opacity-20 blur-xl"></div>
-      <div className="absolute bottom-20 right-10 w-32 h-32 bg-gradient-to-br from-blue-200 to-indigo-300 rounded-full opacity-20 blur-xl"></div>
     </div>
   );
 };

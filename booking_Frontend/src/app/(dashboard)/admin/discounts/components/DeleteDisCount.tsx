@@ -1,5 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
+import Mutate from "@/hook/Mutate";
 import axiosInstance from "@/lib/axios";
 import { URL_API } from "@/lib/fetcher";
 import axios from "axios";
@@ -8,7 +9,6 @@ import React from "react";
 import toast from "react-hot-toast";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
-import { mutate } from "swr";
 
 interface DeleteDiscountProps {
   id: string;
@@ -31,7 +31,7 @@ const DeleteDisCount = ({ id }: DeleteDiscountProps) => {
       if (result.isConfirmed) {
         const res = await axiosInstance.delete(`/api/discount/${id}`);
         if (res.data) {
-          mutate(`${URL_API}/api/discount/getAll`);
+          Mutate(`${URL_API}/api/discount/getAll`);
           toast.success("Xóa Thành Công Mã Giảm Giá");
         }
       }

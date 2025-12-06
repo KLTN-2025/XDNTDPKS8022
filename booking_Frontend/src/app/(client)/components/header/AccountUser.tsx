@@ -9,19 +9,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
+import { useUserStore } from "@/hook/useUserStore";
 
 interface AccountUserProps {
   userType: string | null;
   lastName: string | null;
-
-  setIsLoggedIn: (value: boolean) => void;
 }
-const AccountUser = ({
-  userType,
-  lastName,
+const AccountUser = ({ userType, lastName }: AccountUserProps) => {
+  const { logout } = useUserStore(); // lấy user global từ store
 
-  setIsLoggedIn,
-}: AccountUserProps) => {
   return (
     <div className="flex justify-start">
       <DropdownMenu>
@@ -50,13 +46,7 @@ const AccountUser = ({
               </Link>
             </>
           )}
-          <Link
-            href="/logOut"
-            onClick={() => {
-              setIsLoggedIn(false);
-              localStorage.removeItem("token");
-            }}
-          >
+          <Link href="/logOut" onClick={() => logout()}>
             <DropdownMenuItem>Đăng Xuất</DropdownMenuItem>
           </Link>
         </DropdownMenuContent>

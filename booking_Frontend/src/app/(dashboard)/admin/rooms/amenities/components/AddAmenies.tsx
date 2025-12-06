@@ -9,7 +9,7 @@ import { PlusCircle, X } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import Modal from "react-modal";
-import Mutate from "../../../../../../../hook/Mutate";
+import Mutate from "@/hook/Mutate";
 
 const AddAmenies = () => {
   const [isOpen, setIsOpen] = useState(false);

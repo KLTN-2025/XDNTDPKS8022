@@ -7,13 +7,13 @@ import {
 export async function payMentBooking(req, res) {
   try {
     const { amount, paymentMethod, bookingId, status } = req.body;
+
     const payment = await payMentBookingService({
       amount,
       paymentMethod,
       bookingId,
       status,
     });
-    console.log("Payment request:", { amount, paymentMethod, bookingId });
 
     if (paymentMethod === "QR_CODE" && payment?.checkoutUrl) {
       return res.status(200).json({
@@ -44,7 +44,6 @@ export async function payMentBookingEmployee(req, res) {
       bookingId,
       status,
     });
-    console.log("Payment request:", { amount, paymentMethod, bookingId });
 
     return res.status(200).json({
       status: "success",
@@ -63,7 +62,8 @@ export async function webhookPayment(req, res) {
   try {
     const { status, orderCode } = req.body;
 
-    console.log("Webhook data:", { orderCode, status });
+    console.log(status, "/", orderCode);
+
     if (!orderCode || !status) {
       throw new Error("Invalid webhook data");
     }

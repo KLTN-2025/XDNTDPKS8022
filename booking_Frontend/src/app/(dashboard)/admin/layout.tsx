@@ -5,10 +5,25 @@ import AdminSidebar from "../components/navbar/AdminSidebar";
 import AdminHeader from "../components/navbar/AdminHeader";
 import useAuth from "@/lib/authUser";
 import { Skeleton } from "@/components/ui/skeleton";
+import { pusherClient } from "@/lib/pusher";
+import toast from "react-hot-toast";
+import { useEffect } from "react";
 
 // This component will dynamically adjust based on sidebar state
 function MainContent({ children }: { children: React.ReactNode }) {
   const { isCollapsed } = useSidebar();
+  useEffect(() => {
+    const channel = pusherClient.subscribe("admin-channel");
+
+    channel.bind("new-booking", (data: any) => {
+      toast.success(`📩 Khách ${data.customer} đã đặt phòng ${data.room}`);
+    });
+
+    return () => {
+      channel.unbind_all();
+      channel.unsubscribe();
+    };
+  }, []);
   const { loadingLog } = useAuth(["EMPLOYEE", "ADMIN"]);
 
   if (loadingLog) {

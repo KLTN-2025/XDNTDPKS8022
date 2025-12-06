@@ -10,7 +10,6 @@ const CancelPage = () => {
   const searchParams = useSearchParams();
   const status = searchParams.get("status");
   const orderCode = searchParams.get("orderCode");
-  console.log(status, orderCode);
   useEffect(() => {
     axios.post(`${URL_API}/api/payment/webhook/payos`, {
       status,

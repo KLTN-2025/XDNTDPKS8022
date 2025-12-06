@@ -12,30 +12,9 @@ import React, { useState } from "react";
 import UpdateStatus from "./UpdateStatus";
 import { FilterDropdown } from "./FilterDropdown";
 import { ArrowDown, ArrowDownUp, ArrowUp } from "lucide-react";
+import { translatePaymentStatus, translateStatus } from "@/lib/translate";
+import { IBooking } from "./bookingad";
 
-export interface IBooking {
-  id: string;
-  checkInDate: string; // ISO string
-  checkOutDate: string; // ISO string
-  status: "PENDING" | "CONFIRMED" | "CANCELLED" | "CHECKED_IN" | "CHECKED_OUT";
-  totalAmount: string; // String to match API
-  totalGuests: number;
-  bookingItems: {
-    room: { roomNumber: number; roomType: { name: string; photoUrls: string } };
-  }[];
-  customer: {
-    id: string;
-    user: {
-      firstName: string;
-      lastName: string;
-    };
-  };
-  payments: {
-    id: string;
-    status: "PENDING" | "COMPLETED" | "FAILED";
-    paymentMethod: string;
-  }[];
-}
 interface BookingProps {
   booking: IBooking[];
   selectedStatus: string;
@@ -163,7 +142,7 @@ const TableListBooking = ({
                         : "bg-yellow-100 text-yellow-800"
                     }`}
                   >
-                    {booking.status}
+                    {translateStatus(booking.status)}
                   </span>
                 </TableCell>
 
@@ -177,13 +156,12 @@ const TableListBooking = ({
                         : "bg-red-100 text-red-800"
                     }`}
                   >
-                    {booking.payments[0]?.status || "N/A"}
+                    {translatePaymentStatus(booking.payments[0]?.status) ||
+                      "N/A"}
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm">
-                  {booking.status !== "CHECKED_OUT" && (
-                    <UpdateStatus id={booking.id} status={booking.status} />
-                  )}
+                  <UpdateStatus booking={booking} />
                 </td>
               </TableRow>
             ))

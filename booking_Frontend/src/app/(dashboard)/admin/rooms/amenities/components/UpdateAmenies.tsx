@@ -7,8 +7,7 @@ import { Pencil, X } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import Modal from "react-modal";
-import { mutate } from "swr";
-import Mutate from "../../../../../../../hook/Mutate";
+import Mutate from "@/hook/Mutate";
 
 interface IUpdateAmenies {
   id: string;

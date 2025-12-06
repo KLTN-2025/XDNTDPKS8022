@@ -1,4 +1,3 @@
-import { GoogleGenAI } from "@google/genai";
 import axios from "axios";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { RunnableSequence } from "@langchain/core/runnables";
@@ -175,7 +174,8 @@ Khi trả lời khách, hãy tuân theo các quy tắc sau:
    - Hỏi lại nếu cần thêm thông tin
 
 2. **Khi giới thiệu phòng**:
-   - Tên loại phòng
+   - hãy giới thiệu những loại phòng có sẵn
+   - Tên Phòng
    - Diện tích
    - Số người tối đa
    - Tiện nghi nổi bật

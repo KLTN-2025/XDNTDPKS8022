@@ -1,3 +1,4 @@
+import { useUserStore } from "@/hook/useUserStore";
 import ProfileMenu from "./ProfileMenu";
 import { User, CalendarCheck, KeyRound, Star } from "lucide-react";
 
@@ -36,10 +37,11 @@ export const profileSidebarItems: ProfileSidebarItem[] = [
 ];
 
 const ProfileItems = () => {
+  const { user } = useUserStore();
   return (
     <div className=" h-full md:ml-10 ml-4">
       <div className="text-base font-semibold mb-6">
-        Xin chào, <span className=" text-amber-600">Khách hàng</span>
+        Xin chào, <span className=" text-amber-600">{user?.lastName}</span>
       </div>
       <ProfileMenu menuItems={profileSidebarItems} />
     </div>

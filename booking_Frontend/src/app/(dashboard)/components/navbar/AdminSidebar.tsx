@@ -1,5 +1,5 @@
 "use client";
-import { use, useState } from "react";
+import {  useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -101,6 +101,7 @@ const AdminSidebar = () => {
                       href="/logOut"
                       onClick={() => {
                         localStorage.removeItem("token");
+                        localStorage.removeItem("refreshToken");
                       }}
                     >
                       <LogOut />

@@ -23,7 +23,7 @@ const CheckDateInOut = ({ room }: CheckDateInOutProps) => {
     const dates: string[] = [];
 
     for (let d = new Date(checkIn); d <= checkOut; d.setDate(d.getDate() + 1)) {
-      dates.push(new Date(d).toDateString()); // dùng toDateString để dễ so sánh
+      dates.push(new Date(d).toDateString());
     }
 
     return dates;

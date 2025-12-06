@@ -27,7 +27,6 @@ export async function CreateReview(req, res) {
 export async function PointToReviewed(req, res) {
   const { bookingId } = req.query;
   const customerId = req.user.customer.id;
-  console.log("hi", bookingId, customerId);
 
   try {
     const bookings = await PointToReviewedService(bookingId, customerId);

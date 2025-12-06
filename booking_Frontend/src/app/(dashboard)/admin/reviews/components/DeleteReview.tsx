@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import axiosInstance from "@/lib/axios";
 import toast from "react-hot-toast";
-import { mutate } from "swr";
+import Mutate from "@/hook/Mutate";
 
 interface DeleteReviewProps {
   id: string; // Assuming you need the review ID to delete it
@@ -28,7 +28,7 @@ const DeleteReview = ({ id }: DeleteReviewProps) => {
       if (!res.data) {
         throw new Error("Failed to delete review");
       }
-      mutate(`${process.env.NEXT_PUBLIC_URL_API}/api/review/all`);
+      Mutate(`${process.env.NEXT_PUBLIC_URL_API}/api/review/all`);
       toast.success("Xóa đánh giá thành công!");
     } catch (error: any) {
       console.error("Error deleting review:", error);

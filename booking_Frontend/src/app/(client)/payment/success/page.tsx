@@ -9,7 +9,6 @@ const PaymentSuccess = () => {
   const router = useRouter();
   const status = searchParams.get("status");
   const orderCode = searchParams.get("orderCode");
-  console.log(status, orderCode);
   useEffect(() => {
     axios.post(`${process.env.NEXT_PUBLIC_URL_API}/api/payment/webhook/payos`, {
       status,
@@ -19,7 +18,7 @@ const PaymentSuccess = () => {
   useEffect(() => {
     const timeout = setTimeout(() => {
       router.push("/profile/bookings");
-    }, 2000);
+    }, 3000);
 
     return () => clearTimeout(timeout);
   }, [router]);

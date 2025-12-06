@@ -30,3 +30,64 @@ export async function sendResetMail(to, link) {
     `,
   });
 }
+
+export async function sendBookingMail({
+  to,
+  name,
+  roomName,
+  checkInDate,
+  checkOutDate,
+}) {
+  try {
+    // 1️⃣ Cấu hình SMTP transporter
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+    const paymentDeadline = new Date(checkInDate);
+    paymentDeadline.setDate(paymentDeadline.getDate() + 1); // +1 ngày
+    paymentDeadline.setHours(14, 0, 0, 0); // 14:00:00.000
+
+    // Tạo chuỗi hiển thị "HH:mm ngày dd/MM/yyyy"
+
+    // 2️⃣ Cấu hình nội dung email
+    const mailOptions = {
+      from: `"Your Hotel" <${process.env.EMAIL_USER}>`,
+      to,
+      subject: "Xác nhận đặt phòng thành công 🏨",
+      html: `
+    <div style="font-family:sans-serif;line-height:1.6">
+      <h2>Xin chào ${name},</h2>
+      <p>Bạn đã đặt phòng <strong>${roomName}</strong> thành công.</p>
+      <p>
+        <strong>Ngày nhận phòng:</strong> ${new Date(checkInDate).toLocaleDateString("vi-VN")}<br>
+        <strong>Ngày trả phòng:</strong> ${new Date(checkOutDate).toLocaleDateString("vi-VN")}
+      </p>
+      <p>
+        <strong>Thời gian nhận phòng:</strong> 14:00<br>
+        <strong>Thời gian trả phòng:</strong> 12:00
+      </p>
+    <p>
+  <strong>Lưu ý:</strong> Nếu bạn chọn thanh toán tiền mặt tại khách sạn,
+  vui lòng đến nhận phòng và thanh toán trước ngày đặt 1 ngày
+  Nếu quá thời gian này mà chưa thanh toán, đặt phòng của bạn sẽ tự động bị hủy để đảm bảo quyền lợi cho khách hàng khác.
+</p>
+
+      <p>Cảm ơn bạn đã tin tưởng lựa chọn chúng tôi ❤️</p>
+      <p>Trân trọng,<br><strong>Đội ngũ khách sạn</strong></p>
+    </div>
+  `,
+    };
+
+    // 3️⃣ Gửi mail
+    const info = await transporter.sendMail(mailOptions);
+
+    return info;
+  } catch (error) {
+    console.error("❌ Send email failed:", error);
+    throw error;
+  }
+}

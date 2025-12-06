@@ -1,13 +1,10 @@
-"use client";
 import React from "react";
-import { useRouter } from "next/navigation";
 import { Navigation, Keyboard, Autoplay } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
 import { Swiper, SwiperSlide } from "swiper/react";
 
 const Banner = () => {
-  const route = useRouter();
   return (
     <Swiper
       navigation={true}
@@ -35,14 +32,6 @@ const Banner = () => {
               <h2 className="text-2xl md:text-8xl font-bold mb-2">Kính Chào</h2>
               <p className="text-2xl md:text-6xl">Quý Khách</p>
             </div>
-          </div>
-          <div className="absolute bottom-32 left-0 right-0 flex justify-center z-20">
-            <button
-              className="bg-white text-black px-8 py-3 rounded-full font-medium hover:bg-opacity-90 transition-all cursor-pointer"
-              onClick={() => route.push("/blog")}
-            >
-              Khám Phá Ngay
-            </button>
           </div>
         </div>
       </SwiperSlide>

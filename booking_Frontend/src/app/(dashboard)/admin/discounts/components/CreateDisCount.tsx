@@ -3,8 +3,8 @@ import axios from "axios";
 import { toast } from "react-hot-toast";
 import Modal from "react-modal";
 import { Button } from "@/components/ui/button";
-import { mutate } from "swr";
 import { URL_API } from "@/lib/fetcher";
+import Mutate from "@/hook/Mutate";
 
 Modal.setAppElement("#root");
 
@@ -39,7 +39,7 @@ const CreateDiscount = () => {
         withCredentials: true,
       });
       if (res.data) {
-        mutate(`${URL_API}/api/discount/getAll`);
+        Mutate(`${URL_API}/api/discount/getAll`);
         toast.success("Thêm Mã Giảm Giá Thành Công");
         setIsOpen(false);
         setFormData({

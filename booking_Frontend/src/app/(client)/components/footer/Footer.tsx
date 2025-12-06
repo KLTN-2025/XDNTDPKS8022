@@ -1,17 +1,7 @@
-"use client";
-import React, { FormEvent, useState } from "react";
+import React from "react";
 import Link from "next/link";
 
 const Footer: React.FC = () => {
-  const [email, setEmail] = useState<string>("");
-
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    // Logic xử lý đăng ký email (có thể gọi API ở đây)
-    console.log("Email submitted:", email);
-    setEmail("");
-  };
-
   return (
     <footer className="bg-gray-900 text-gray-300 py-6">
       <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-5 gap-8">
@@ -101,7 +91,7 @@ const Footer: React.FC = () => {
           <ul className="space-y-2">
             <li>
               <Link
-                href="#"
+                href="/about"
                 className="hover:text-yellow-400 transition-colors"
               >
                 Giới Thiệu
@@ -109,15 +99,15 @@ const Footer: React.FC = () => {
             </li>
             <li>
               <Link
-                href="#"
+                href="/imageshotel"
                 className="hover:text-yellow-400 transition-colors"
               >
-                Blog
+                Thư Viện Ảnh
               </Link>
             </li>
             <li>
               <Link
-                href="#"
+                href="/contact"
                 className="hover:text-yellow-400 transition-colors"
               >
                 Tuyển Dụng
@@ -125,7 +115,7 @@ const Footer: React.FC = () => {
             </li>
             <li>
               <Link
-                href="#"
+                href="/blog"
                 className="hover:text-yellow-400 transition-colors"
               >
                 Tin Tức

@@ -48,7 +48,6 @@ const Page = () => {
           className="w-56"
           placeholder="Chọn loại phòng"
           showCapacity={true}
-          showPrice={true}
           options={DataTypeRoom?.roomType}
           onTypeChange={setSelectedRoomTypes}
           selectedTypes={selectedRoomTypes}

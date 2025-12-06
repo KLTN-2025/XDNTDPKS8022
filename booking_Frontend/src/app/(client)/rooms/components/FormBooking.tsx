@@ -1,7 +1,6 @@
 import { formatPrice } from "@/lib/formatPrice";
 import { Calendar, Coffee } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import ModalPayMent from "./ModalPayMent";
 import toast from "react-hot-toast";
 import useSWR from "swr";
 import DatePicker from "react-datepicker";
@@ -11,18 +10,23 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Square } from "lucide-react";
+import {
+  formatDate,
+  getExcludeDates,
+  getHighlightedDates,
+} from "@/lib/formatDate";
+import InformationBooking from "./InformationBooking";
+import { useBookingStore } from "@/app/(dashboard)/context/useBookingForm";
+import { useUserStore } from "@/hook/useUserStore";
+import LoginModal from "./LoginModal";
 
-interface BookedRange {
-  start: string; // "YYYY-MM-DD"
-  end: string; // "YYYY-MM-DD"
-  status: string;
-}
 interface RoomBooking {
   room: {
     id: string;
+    originalPrice: number;
+    currentPrice: number;
     roomType: {
       maxOccupancy: number;
-      basePrice: string;
     };
   };
   handleFormChange: (
@@ -30,93 +34,83 @@ interface RoomBooking {
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
     >
   ) => void;
-  formData: any;
-  setFormData: React.Dispatch<
-    React.SetStateAction<{
-      checkInDate: Date | null;
-      checkOutDate: Date | null;
-      totalGuests: number;
-      specialRequests: string;
-      totalAmount: number;
-      bookingSource: string;
-      discountId: number | null;
-      pricePerNight: number;
-      roomId: string;
-    }>
-  >;
+
+  seasonPrice: {
+    total: number;
+    currentPrice: number;
+    originalPrice: number;
+    displayPrice: number;
+  };
 }
 
-const FormBooking = ({
-  room,
-  formData,
-  handleFormChange,
-  setFormData,
-}: RoomBooking) => {
+const FormBooking = ({ seasonPrice, room, handleFormChange }: RoomBooking) => {
+  const { formData, setFormData, } = useBookingStore();
+  const { user } = useUserStore();
   const [isOpen, setIsOpen] = useState(false);
+  const [isLogin, setIsLogin] = useState(false);
+
   const [bookedDates, setBookedDates] = useState<Date[]>([]);
   const [discountCode, setDiscountCode] = useState("");
+
   const [highlightedDates, setHighlightedDates] = useState<
     { [className: string]: Date[] }[]
   >([]);
 
   const handleOpenModal = () => {
-    if (formData.checkInDate && formData.checkOutDate) {
-      if (formData.checkOutDate <= formData.checkInDate) {
-        toast.error("Ngày trả phòng phải sau ngày nhận phòng");
-        return;
-      }
-      setIsOpen(true);
-    } else {
+    const { checkInDate, checkOutDate } = formData;
+
+    // Kiểm tra đã chọn ngày chưa
+    if (!checkInDate || !checkOutDate) {
       toast.error("Vui lòng chọn ngày nhận phòng và trả phòng");
+      return;
     }
+
+    // Kiểm tra ngày trả phòng sau ngày nhận phòng
+    if (new Date(checkOutDate) <= new Date(checkInDate)) {
+      toast.error("Ngày trả phòng phải sau ngày nhận phòng");
+      return;
+    }
+
+    // Kiểm tra user đã login chưa
+    if (!user?.token) {
+      toast.error("Vui lòng đăng nhập để tiếp tục");
+      setIsLogin(true); // bật form login nếu cần
+    }
+
+    // Nếu tất cả điều kiện đúng → mở modal
+    setIsOpen(true);
   };
 
-  function getExcludeDates(bookedRanges: BookedRange[]): Date[] {
-    const dates: Date[] = [];
-    bookedRanges.forEach((range) => {
-      const startDate = new Date(range.start);
-      const endDate = new Date(range.end);
-
-      for (
-        let d = new Date(startDate);
-        d <= endDate;
-        d.setDate(d.getDate() + 1)
-      ) {
-        dates.push(new Date(d));
-      }
-    });
-    return dates;
-  }
-
+  console.log("laf", formData);
   const { data } = useSWR(`${URL_API}/api/room/${room.id}/booked-dates`);
-  console.log("Booked Dates Data:", data);
   const { data: discount } = useSWR(
     discountCode ? `${URL_API}/api/discount?code=${discountCode}` : null
   );
 
   function handleDiscountCode() {
     if (!formData.checkInDate || !formData.checkOutDate) return;
-    const basePrice = Number(room.roomType.basePrice);
-    const days =
-      (formData.checkOutDate.getTime() - formData.checkInDate.getTime()) /
-      (1000 * 60 * 60 * 24);
+
     if (discount?.data?.percentage) {
-      setFormData((prev) => ({
-        ...prev,
+      setFormData({
         discountId: discount.data.id,
         totalAmount: Math.round(
-          basePrice * days * (1 - discount.data.percentage / 100)
+          formData.totalAmount * (1 - discount.data.percentage / 100)
         ),
-      }));
+      });
 
       toast.success("Mã giảm giá đã được áp dụng!");
-    } else {
-      toast.error("Mã giảm giá không hợp lệ hoặc đã hết hạn");
-      setFormData((prev) => ({
-        ...prev,
+    } else if (!discountCode) {
+      toast.error("vui lòng nhập mã giảm giá !");
+      setFormData({
         discountId: null,
-        totalAmount: Math.round(basePrice * days),
-      }));
+        totalAmount: seasonPrice.total,
+      });
+    } else {
+      toast.error("Mã giảm giá không hợp lệ hoặc đã hết hạn !");
+      setFormData({
+        discountId: null,
+        totalAmount: seasonPrice.total,
+      });
     }
   }
 
@@ -127,57 +121,27 @@ const FormBooking = ({
     }
   }, [data]);
 
-  function getHighlightedDates(
-    bookedRanges: BookedRange[]
-  ): { [className: string]: Date[] }[] {
-    const highlighted: { [className: string]: Date[] }[] = [];
-
-    bookedRanges.forEach((range) => {
-      const startDate = new Date(range.start);
-      const endDate = new Date(range.end);
-      const dates: Date[] = [];
-
-      for (
-        let d = new Date(startDate);
-        d <= endDate;
-        d.setDate(d.getDate() + 1)
-      ) {
-        dates.push(new Date(d));
-      }
-
-      let className = "";
-
-      if (range.status === "CHECKED_IN") {
-        className = "react-datepicker__day--checked-in";
-      } else if (range.status === "PENDING") {
-        className = "react-datepicker__day--pending";
-      }
-
-      if (className) {
-        highlighted.push({ [className]: dates });
-      }
-    });
-
-    return highlighted;
-  }
-
   const handleDateChange = (
     date: Date | null,
     field: "checkInDate" | "checkOutDate"
   ) => {
-    setFormData((prev) => ({
-      ...prev,
+    setFormData({
       [field]: date,
-    }));
+    });
   };
 
   return (
     <div>
-      <div className="bg-gray-50 py-8 px-4 rounded-xl shadow-md sticky top-6 border border-gray-100">
+      <div className="bg-gray-50 py-8 px-4 rounded-xl shadow-md sticky top-6 border border-gray-100 mt-5 ">
         <h2 className="text-4xl font-bold text-gray-800 mb-6 text-center">
           Đặt phòng
         </h2>
-        <form className="space-y-6">
+        <form
+          className="space-y-6"
+          onSubmit={(e) => {
+            e.preventDefault();
+          }}
+        >
           {/* Divider */}
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
@@ -192,7 +156,7 @@ const FormBooking = ({
 
           {/* Booking Details */}
           <div className="space-y-4">
-            <div className="flex flex-col md:flex-row gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-2 flex items-center">
                   <Calendar size={16} className="mr-2 text-blue-600" />
@@ -228,12 +192,12 @@ const FormBooking = ({
                 />
               </div>
             </div>
-            <div className="flex  items-center gap-6">
-              <div className="flex items-center gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 mx-5  items-center gap-6">
+              <div className=" flex flex-col xl:flex-row items-center gap-2 mt-1">
                 <Square className="w-4 h-4 text-gray-400 bg-gray-400" />
                 <span>Đã có người đặt</span>
               </div>
-              <div className="flex items-center gap-2 mt-1">
+              <div className=" flex flex-col xl:flex-row items-center gap-2 mt-1">
                 <Square className="w-4 h-4 text-green-500 bg-green-500" />
                 <span>Đã Nhận Phòng</span>
               </div>
@@ -273,7 +237,7 @@ const FormBooking = ({
             </div>
           </div>
           <div className="grid w-full max-w-sm gap-2">
-            <Label htmlFor="discount">Mã giảm giá</Label>
+            <Label htmlFor="discount">Mã giảm giá (nếu có)</Label>
             <div className="flex items-center gap-2">
               <Input
                 id="discount"
@@ -293,9 +257,10 @@ const FormBooking = ({
             <div className="flex justify-between mb-2">
               <span className="text-gray-600">Giá phòng mỗi đêm:</span>
               <span className="font-medium">
-                {formatPrice(Number(room.roomType.basePrice))}
+                {formatPrice(Number(seasonPrice.displayPrice))}
               </span>
             </div>
+
             <div className="border-t border-gray-200 my-2 pt-2">
               <div className="flex justify-between">
                 <span className="font-medium">Tổng cộng:</span>
@@ -318,13 +283,27 @@ const FormBooking = ({
             Đặt phòng ngay
           </button>
 
-          <p className="text-xs text-center text-gray-500">
-            Bằng cách nhấn Đặt phòng ngay, bạn đồng ý với các điều khoản và điều
-            kiện của chúng tôi
-          </p>
+          {formData.checkInDate && formData.checkOutDate ? (
+            <p className="text-xs text-gray-500 mt-1 text-center">
+              Giá phòng trong khoảng thời gian{" "}
+              {formatDate(formData.checkInDate)} -{" "}
+              {formatDate(formData.checkOutDate)} được áp dụng theo mùa cao điểm
+              (đã bao gồm điều chỉnh mùa vụ).
+            </p>
+          ) : (
+            <p className="text-xs text-center text-gray-500">
+              Lưu ý: Giá hiển thị là giá gốc tham khảo cho ngày bắt đầu đặt
+              phòng. Giá thực tế của từng đêm có thể thay đổi theo mùa vụ tùy
+              theo ngày cụ thể quý khách đặt.
+            </p>
+          )}
         </form>
       </div>
-      <ModalPayMent isOpen={isOpen} setIsOpen={setIsOpen} formData={formData} />
+      {isLogin ? (
+        <LoginModal isLogin={isLogin} setIsLogin={setIsLogin} />
+      ) : (
+        <InformationBooking isOpen={isOpen} setIsOpen={setIsOpen} />
+      )}
     </div>
   );
 };

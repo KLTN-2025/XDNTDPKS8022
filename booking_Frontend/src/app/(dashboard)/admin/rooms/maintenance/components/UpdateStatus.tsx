@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils";
 import { Check, ChevronsUpDown } from "lucide-react";
 import toast from "react-hot-toast";
 import axiosInstance from "@/lib/axios";
-import Mutate from "../../../../../../../hook/Mutate";
+import Mutate from "@/hook/Mutate";
 import { URL_API } from "@/lib/fetcher";
 
 const statuses = ["SCHEDULED", "IN_PROGRESS", "COMPLETED", "CANCELLED"];
@@ -74,7 +74,6 @@ const UpdateStatus = ({ status, id }: { status: string; id: string }) => {
                   onSelect={() => {
                     setSelectedStatus(s);
                     setOpen(false);
-                    console.log("Trạng thái mới:", s);
                     // Gọi API update tại đây nếu cần
                     try {
                       axiosInstance.put(`/api/maintenance/${id}`, {

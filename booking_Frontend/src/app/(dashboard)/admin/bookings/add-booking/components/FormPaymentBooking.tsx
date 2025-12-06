@@ -23,9 +23,16 @@ interface IPaymen {
   formCustomer: CustomerForm;
   formBooking: BookingFormData;
   setFormBooking: React.Dispatch<React.SetStateAction<BookingFormData>>;
+  seasonPrice: {
+    total: number;
+    currentPrice: number;
+    originalPrice: number;
+    displayPrice: number;
+  };
 }
 
 const FormPaymentBooking = ({
+  seasonPrice,
   formCustomer,
   isOpen,
   setIsOpen,
@@ -35,66 +42,73 @@ const FormPaymentBooking = ({
   const [paymentMethod, setPaymentMethod] = useState<string>("");
   const [nights, setNights] = useState(0);
   const [discount, setDiscount] = useState<number>(0);
-  const [discountAmount, setDiscountAmount] = useState(0);
+
   useEffect(() => {
     Modal.setAppElement("#root");
   }, []);
+  useEffect(() => {
+    if (formBooking.checkInDate && formBooking.checkOutDate) {
+      const calculatedNights = calculateNights(
+        formBooking.checkInDate,
+        formBooking.checkOutDate
+      );
+      setNights(Number(calculatedNights));
+    }
+  }, [formBooking.checkInDate, formBooking.checkOutDate]);
 
   async function ApplyDisCount() {
+    if (!formBooking.discountCode) {
+      setDiscount(0);
+      setFormBooking((prev) => ({
+        ...prev,
+        totalAmount: seasonPrice.total,
+      }));
+      toast("Đã hủy mã giảm giá, giá phòng trở lại ban đầu.");
+      return;
+    }
+
     try {
       const res = await axios.get(
         `${URL_API}/api/discount?code=${formBooking.discountCode}`,
-        {
-          withCredentials: true,
-        }
+        { withCredentials: true }
       );
-      if (res.data) {
-        setDiscount(Number(res?.data?.data?.percentage ?? 0));
+
+      const percentage = Number(res?.data?.data?.percentage ?? 0);
+
+      if (percentage > 0) {
+        const baseTotal = seasonPrice.total;
+        const discountedTotal = baseTotal * (1 - percentage / 100);
+
+        setDiscount(percentage);
+        setFormBooking((prev) => ({
+          ...prev,
+          totalAmount: Math.round(discountedTotal),
+        }));
+
         toast.success("Áp dụng mã giảm giá thành công!");
       } else {
         setDiscount(0);
-        toast.error("Mã giảm giá không hợp lệ");
+        setFormBooking((prev) => ({
+          ...prev,
+          totalAmount: seasonPrice.total,
+        }));
+        toast("Mã giảm giá không hợp lệ hoặc đã hết hạn.");
       }
     } catch (error: any) {
+      setDiscount(0);
+      setFormBooking((prev) => ({
+        ...prev,
+        totalAmount: seasonPrice.total,
+      }));
       toast.error(error?.response?.data?.message || "Mã giảm giá không hợp lệ");
     }
   }
 
-  useEffect(() => {
-    if (formBooking.checkInDate && formBooking.checkOutDate) {
-      const calculatedNights =
-        calculateNights(formBooking.checkInDate, formBooking.checkOutDate) || 0;
-
-      setNights(calculatedNights);
-      const totalNights = calculatedNights * formBooking.pricePerNight;
-      const totalDiscount = (totalNights * discount) / 100 || 0;
-      setDiscountAmount(totalDiscount);
-      setFormBooking((prev) => ({
-        ...prev,
-        totalAmount: totalNights - totalDiscount,
-      }));
-    } else {
-      setNights(0);
-      setFormBooking((prev) => ({
-        ...prev,
-        totalAmount: 0,
-      }));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    formBooking.checkInDate,
-    formBooking.checkOutDate,
-    formBooking.pricePerNight,
-    discount,
-  ]);
-
-  console.log("khách hàng", formCustomer);
-  console.log("giá cuối", formBooking);
-  console.log("discount", discount);
+  console.log(discount);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    let idCustomer = formCustomer.id; // nếu đã có id => khách hàng cũ
+    let idCustomer = formCustomer.id;
 
     try {
       // Nếu chưa có khách hàng thì tạo mới
@@ -125,7 +139,6 @@ const FormPaymentBooking = ({
       );
 
       if (payment) {
-        toast.success("Thanh toán thành công");
       } else {
         toast.error("Thanh toán thất bại, vui lòng thử lại!");
       }
@@ -151,8 +164,6 @@ const FormPaymentBooking = ({
   const handlePaymentMethodChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
-    console.log("la :", e.target.value);
-
     setPaymentMethod(e.target.value);
   };
 
@@ -198,7 +209,7 @@ const FormPaymentBooking = ({
                 <span>Ngày Nhận Phòng:</span>
                 <span className="font-medium">
                   {formBooking.checkOutDate
-                    ? formatDate(String(formBooking.checkInDate))
+                    ? formatDate(formBooking.checkInDate)
                     : null}
                 </span>
               </div>
@@ -207,7 +218,7 @@ const FormPaymentBooking = ({
                 <span>Ngày Trả Phòng:</span>
                 <span className="font-medium">
                   {formBooking.checkOutDate
-                    ? formatDate(String(formBooking.checkOutDate))
+                    ? formatDate(formBooking.checkOutDate)
                     : null}
                 </span>
               </div>
@@ -264,13 +275,6 @@ const FormPaymentBooking = ({
                   {formatPrice(formBooking.pricePerNight)}
                 </span>
               </div>
-
-              {discountAmount && (
-                <div className="flex justify-between text-green-600 text-base">
-                  <span>mã Giảm Giá:</span>
-                  <span>{formatPrice(discountAmount)}</span>
-                </div>
-              )}
 
               <div className="flex justify-between font-bold text-xl mt-2">
                 <span>Tổng Số Tiền:</span>
@@ -357,4 +361,4 @@ const FormPaymentBooking = ({
   );
 };
 
-export default FormPaymentBooking;
+export default React.memo(FormPaymentBooking);
